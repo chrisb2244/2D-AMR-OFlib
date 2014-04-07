@@ -41,8 +41,42 @@ Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, cons
 			<< numKs_ << " k values will be used to form the perturbation." << endl;
 	}
 	
-	// Need to get this still.
-	cellDepth_ = 1.0;
+	{
+		DynamicList<scalar> depths(0);
+		label point0 = mesh_.cellPoints()[0][0];
+		point pt0 = mesh_.points()[point0];
+		forAll(mesh_.cellPoints()[0], pt)
+		{
+			label pointI = mesh_.cellPoints()[0][pt];
+			point ptI = mesh_.points()[pointI];
+			vector vec(ptI - pt0);
+			if (mag(vec[2]) > 1E-14)
+			{
+				if (depths.size() == 0)
+				{
+					depths.append(mag(vec[2]));
+				}
+				else if (depths.size() == 1)
+				{
+					if (depths[0] != mag(vec[2]))
+					{
+						FatalErrorIn("getCellDepth()")
+							<< "The value of z computed between point "
+							<< pointI
+							<< " and point 0 of cell 0 was not the same as for an earlier point "
+							<< "with non-zero difference in z."
+							<< abort(FatalError);
+					}
+				}
+			}
+		}
+		if (debug) Pout<< "Cell depth = " << depths[0] << endl;
+		cellDepth_ = depths[0];
+	}
+	
+	Pout<< "cellDepth_ = " << cellDepth_ << endl;
+	
+	
 
 	// Calculated values
 	kSpacing_ = (kEnd_ - kStart_)/numKs_;
@@ -95,7 +129,7 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
 			mesh_,
 			IOobject::NO_READ,
 			IOobject::AUTO_WRITE,
-			true // registry
+			true
 		),
 		mesh_,
 		dimensionedScalar
