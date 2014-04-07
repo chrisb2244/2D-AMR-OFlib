@@ -1,5 +1,0 @@
-DEPENDENCIES = \
-dynamicRefineFvMeshHexRef4/dynamicRefineFvMeshHexRef4.dep\
-hexRef4/hexRef4.dep\
-refinementTree/refinementTree.dep\
-regenerateAlphaClass/regenerateAlphaClass.dep
