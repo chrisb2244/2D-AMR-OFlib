@@ -1,0 +1,57 @@
+	//~ std::ofstream outfileAlpha;
+	//~ outfileAlpha.open("0/alpha3");
+	//~ outfileAlpha << "/*--------------------------------*- C++ -*----------------------------------*\\\n" \
+	    //~ << "| =========                 |                                                 |\n" \
+	    //~ << "| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n" \
+	    //~ << "|  \\\\    /   O peration     | Version:  2.2.1                                 |\n" \
+	    //~ << "|   \\\\  /    A nd           | Web:      www.OpenFOAM.org                      |\n" \
+	    //~ << "|    \\\\/     M anipulation  |                                                 |\n" \
+	    //~ << "\\*---------------------------------------------------------------------------*/\n" \
+	    //~ << "FoamFile\n" \
+	    //~ << "{\n"\
+	    //~ << "    version     2.0;\n" \
+	    //~ << "    format      ascii;\n"\
+	    //~ << "    class       volScalarField;\n"\
+	    //~ << "    location    \"0\";\n"\
+	    //~ << "    object      alpha1;\n"\
+	    //~ << "}\n"\
+	    //~ << "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n" \
+		//~ <<    "dimensions [0 0 0 0 0 0 0];\n\n" \
+        //~ <<    "internalField nonuniform List<scalar>\n" \
+        //~ << mesh_.nCells() << "\n(\n";
+    //~ if (runTime.timeName() != 0)
+    //~ {
+		//~ Pout << "uh oh! timeName() = " << runTime.timeName() << endl;
+	//~ }	
+	
+	
+	
+	
+	
+	
+	
+		
+	//~ outfileAlpha << ")\n;\n\nboundaryField\n{\n" \
+             //~ << "   side_left\n" \
+             //~ << "   {\n" \
+             //~ << "       type        cyclic;\n" \
+             //~ << "   }\n" \
+             //~ << "   side_right\n" \
+             //~ << "   {\n" \
+             //~ << "       type        cyclic;\n" \
+             //~ << "   }\n" \
+             //~ << "   bottom\n" \
+             //~ << "   {\n" \
+             //~ << "       type        zeroGradient;\n" \
+             //~ << "   }\n" \
+             //~ << "   top\n" \
+             //~ << "   {\n" \
+             //~ << "       type        zeroGradient;\n" \
+             //~ << "   }\n" \
+             //~ << "   frontAndBack\n" \
+             //~ << "   {\n" \
+             //~ << "       type        empty;\n" \
+             //~ << "   }\n" \
+             //~ << "}\n\n"
+             //~ << "// ************************************************************************* //";
+    //~ outfileAlpha.close();

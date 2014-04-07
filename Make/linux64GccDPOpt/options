@@ -1,0 +1,60 @@
+# 1 "options"
+# 1 "<command-line>"
+
+
+
+
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+
+# 17 "/usr/include/stdc-predef.h" 3 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 1 "/usr/include/x86_64-linux-gnu/bits/predefs.h" 1 3 4
+
+# 18 "/usr/include/x86_64-linux-gnu/bits/predefs.h" 3 4
+
+
+
+
+
+
+
+
+
+
+
+
+# 31 "/usr/include/stdc-predef.h" 2 3 4
+
+
+
+
+
+
+
+
+# 4 "<command-line>" 2
+# 1 "options"
+DEBUG_OPT = -g
+NO_DEBUG_OPT = 
+
+EXE_INC = 	$(NO_DEBUG_OPT) 	-I. 	-I$(WM_PROJECT_USER_DIR)/application/utilities/include 	-I$(LIB_SRC)/dynamicFvMesh/lnInclude -I$(LIB_SRC)/finiteVolume/lnInclude -I$(LIB_SRC)/dynamicMesh/lnInclude -I$(LIB_SRC)/meshTools/lnInclude -I$(LIB_SRC)/OpenFOAM/lnInclude
+# 13 "options"
+
+LIB_LIBS= 	-lOpenFOAM 	-lfiniteVolume
+
+
+
+EXE_LIBS = -lfiniteVolume -lOpenFOAM

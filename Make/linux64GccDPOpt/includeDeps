@@ -1,0 +1,4 @@
+include dynamicRefineFvMeshHexRef4/dynamicRefineFvMeshHexRef4.dep
+include hexRef4/hexRef4.dep
+include refinementTree/refinementTree.dep
+include regenerateAlphaClass/regenerateAlphaClass.dep

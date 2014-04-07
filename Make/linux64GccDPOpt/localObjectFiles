@@ -1,0 +1,5 @@
+LOCAL_OBJECTS = \
+dynamicRefineFvMeshHexRef4.o\
+hexRef4.o\
+refinementTree.o\
+regenerateAlphaClass.o

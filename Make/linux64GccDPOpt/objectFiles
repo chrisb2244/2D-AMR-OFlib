@@ -1,0 +1,5 @@
+OBJECTS = \
+$(OBJECTS_DIR)/dynamicRefineFvMeshHexRef4.o\
+$(OBJECTS_DIR)/hexRef4.o\
+$(OBJECTS_DIR)/refinementTree.o\
+$(OBJECTS_DIR)/regenerateAlphaClass.o

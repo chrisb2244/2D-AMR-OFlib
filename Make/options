@@ -1,0 +1,20 @@
+DEBUG_OPT = -g
+NO_DEBUG_OPT = 
+
+EXE_INC = \
+	$(NO_DEBUG_OPT) \
+	-I. \
+	-I$(WM_PROJECT_USER_DIR)/application/utilities/include \
+	-I$(LIB_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/OpenFOAM/lnInclude
+
+LIB_LIBS= \
+	-lOpenFOAM \
+	-lfiniteVolume
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lOpenFOAM

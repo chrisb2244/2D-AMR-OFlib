@@ -1,0 +1,5 @@
+SOURCE = \
+dynamicRefineFvMeshHexRef4/dynamicRefineFvMeshHexRef4.C\
+hexRef4/hexRef4.C\
+refinementTree/refinementTree.C\
+regenerateAlphaClass/regenerateAlphaClass.C
