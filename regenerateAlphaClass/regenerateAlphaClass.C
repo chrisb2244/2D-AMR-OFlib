@@ -26,8 +26,6 @@ License
 
 #include "regenerateAlphaClass.H"	// Header file for class
 #include <vector>					// Needed for vector of functors
-#include <fstream>					// Needed to read the yPerturbationDict
-#include "functions.H"				// Needed to read the yPerturbationDict
 #include "fvCFD.H"					// Completes types for patchFields
 
 namespace Foam
@@ -39,27 +37,28 @@ Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, cons
 :
 	mesh_(mesh),
 	randomSeed_(seed),
-	yMid_(yMid)
-{
-	// Read these values from a dictionary
-	std::string yScalingFactorLine, kStartLine, kEndLine, numKsLine, line;
-	std::ifstream yPert;
-	yPert.open("system/yPerturbationDict");
-
-	while (yPert.good())
-	{
-		getline(yPert, line);
-		lineFinder(yScalingFactorLine,"yScalingFactor",line);
-		lineFinder(kStartLine,"kStart",line);
-		lineFinder(kEndLine,"kEnd",line);
-		lineFinder(numKsLine,"numKs",line);
-	}
-
-	extractNumber(kStart_, "kStart =", kStartLine);
-	extractNumber(kEnd_, "kEnd =", kEndLine);
-	extractNumber(yScaling_, "yScalingFactor =", yScalingFactorLine);
-	extractNumber(numKs_, "numKs =", numKsLine);
+	yMid_(yMid),
+	yPtDict_
+	(
+		IOdictionary
+		(
+			IOobject
+			(
+				"yPerturbationDict",
+				mesh_.time().constant(),
+				mesh_,
+				IOobject::MUST_READ,
+				IOobject::NO_WRITE
+			)
+		)
+	),
 	
+	kStart_		(readScalar(yPtDict_.lookup("kStart"))),
+	kEnd_		(readScalar(yPtDict_.lookup("kEnd"))),
+	numKs_		(readScalar(yPtDict_.lookup("numKs"))),
+	yScaling_	(readScalar(yPtDict_.lookup("yScalingFactor")))
+	
+{
 	if (debug)
 	{
 		Pout<< "The values of kStart, kEnd, yScalingFactor are " << kStart_

@@ -112,6 +112,7 @@ private:
 	double cellDepth_;
 	const double randomSeed_;
 	const double yMid_;
+	const dictionary yPtDict_;
 	double kStart_;
 	double kEnd_;
 	double kSpacing_;

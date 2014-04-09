@@ -1889,33 +1889,33 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
         }
 
 
-        {
-            // Select unrefineable points that are not marked in refineCell
-            labelList pointsToUnrefine
-            (
-                selectUnrefinePoints
-                (
-                    unrefineLevel,
-                    refineCell,
-                    minCellField(vFld)
-                )
-            );
-
-            label nSplitPoints = returnReduce
-            (
-                pointsToUnrefine.size(),
-                sumOp<label>()
-            );
-
-            if (nSplitPoints > 0)
-            {
-                // Refine/update mesh
-                //Pout<< "Points were chosen to unrefine" << endl;
-                unrefine(pointsToUnrefine);
-
-                hasChanged = true;
-            }
-        }
+        //~ {
+            //~ // Select unrefineable points that are not marked in refineCell
+            //~ labelList pointsToUnrefine
+            //~ (
+                //~ selectUnrefinePoints
+                //~ (
+                    //~ unrefineLevel,
+                    //~ refineCell,
+                    //~ minCellField(vFld)
+                //~ )
+            //~ );
+//~ 
+            //~ label nSplitPoints = returnReduce
+            //~ (
+                //~ pointsToUnrefine.size(),
+                //~ sumOp<label>()
+            //~ );
+//~ 
+            //~ if (nSplitPoints > 0)
+            //~ {
+                //~ // Refine/update mesh
+                //~ //Pout<< "Points were chosen to unrefine" << endl;
+                //~ unrefine(pointsToUnrefine);
+//~ 
+                //~ hasChanged = true;
+            //~ }
+        //~ }
 
 
         if ((nRefinementIterations_ % 10) == 0)
