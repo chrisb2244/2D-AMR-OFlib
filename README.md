@@ -75,11 +75,11 @@ Contains:
 	generate a new seed each time you initialise an object of 
 	regenerateAlphaClass type within the solver).
 
-	ToDo:
-	Fix mySplitSideFaces() for complicated interface patterns.
-	Remove unnecessary added functions (probably by commenting out).
-	Implement unrefinement.
-	Check through flux corrections for updateAtZero/refineAtZero. Not
-	all fields exist at that point, so relatively few need correction,
-	but at least some might (read - alpha).
+ToDo:
+Fix mySplitSideFaces() for complicated interface patterns.
+Remove unnecessary added functions (probably by commenting out).
+Implement unrefinement.
+Check through flux corrections for updateAtZero/refineAtZero. Not all fields 
+exist at that point, so relatively few need correction, but at least some 
+might (read - alpha).
 	
