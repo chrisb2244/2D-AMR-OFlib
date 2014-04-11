@@ -4,6 +4,7 @@
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
 
 Contains:
+
 	dynamicRefineFvMeshHexRef4:
 	Class based on the dynamicRefineFvMesh. Only a few changes - 
 	some hardcoded numbers changed from 7 to 3 or 8 to 4, added
