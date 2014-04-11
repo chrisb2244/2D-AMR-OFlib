@@ -113,11 +113,11 @@ private:
 	const double randomSeed_;
 	const double yMid_;
 	const dictionary yPtDict_;
-	double kStart_;
-	double kEnd_;
+	const double kStart_;
+	const double kEnd_;
 	double kSpacing_;
-	int numKs_;
-	double yScaling_;
+	const int numKs_;
+	const double yScaling_;
 };
 
 

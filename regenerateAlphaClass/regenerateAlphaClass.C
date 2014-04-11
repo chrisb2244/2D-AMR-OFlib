@@ -95,11 +95,10 @@ Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, cons
 				}
 			}
 		}
-		if (debug) Pout<< "Cell depth = " << depths[0] << endl;
 		cellDepth_ = depths[0];
 	}
 	
-	Pout<< "cellDepth_ = " << cellDepth_ << endl;
+	if (debug) Pout<< "cellDepth_ = " << cellDepth_ << endl;
 	
 	
 

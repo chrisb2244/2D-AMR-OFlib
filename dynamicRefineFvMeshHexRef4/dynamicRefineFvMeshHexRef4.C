@@ -1143,6 +1143,8 @@ Foam::dynamicRefineFvMeshHexRef4::cellToPoint(const scalarField& vFld) const
         }
         pFld[pointI] = sum/pCells.size();
     }
+    //~ Info << "pFld = " ;
+    //~ Info << pFld << endl;
     return pFld;
 }
 
@@ -1211,8 +1213,8 @@ Foam::labelList Foam::dynamicRefineFvMeshHexRef4::selectRefineCells
     const PackedBoolList& candidateCell
 ) const
 {
-    // Every refined cell causes 7 extra cells
-    label nTotToRefine = (maxCells - globalData().nTotalCells()) / 7;
+    // Every refined cell causes 3 extra cells
+    label nTotToRefine = (maxCells - globalData().nTotalCells()) / 3;
 
     const labelList& cellLevel = meshCutter_.cellLevel();
 
@@ -1536,6 +1538,8 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
     // Re-read dictionary. Choosen since usually -small so trivial amount
     // of time compared to actual refinement. Also very useful to be able
     // to modify on-the-fly.
+    Info<< "Info - starting updateAtZero()" << endl;
+    Pout<< "Pout - starting updateAtZero()" << endl;
     dictionary refineDict
     (
         IOdictionary
@@ -1551,6 +1555,7 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
             )
         ).subDict(typeName + "Coeffs")
     );
+    Info<< refineDict << endl;
 
     label refineInterval = readLabel(refineDict.lookup("refineInterval"));
 
@@ -1600,8 +1605,10 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
         }
 
         const word fieldName(refineDict.lookup("field"));
+        Info<< "fieldName = " << fieldName << endl;
 
         const volScalarField& vFld = lookupObject<volScalarField>(fieldName);
+        //~ Info<< "vFld = " << vFld << endl;
 
         const scalar lowerRefineLevel =
             readScalar(refineDict.lookup("lowerRefineLevel"));

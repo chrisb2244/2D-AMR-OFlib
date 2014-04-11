@@ -93,8 +93,8 @@ class hexRef4
         refinementTree history_;
         
         // cell Depth and aspect ratio
-        const double cellDepth_;
         const double aspectX_to_Y_; // Multiply x per cell by this to get y per cell
+        const vector cell0Lengths_;
 
         //- Face remover engine
         removeFaces faceRemover_;
@@ -112,13 +112,14 @@ class hexRef4
 
 		Foam::vector calcSingleFaceNormal(const pointField&, const label&) const;
 		int calcRelevantDirs(const Foam::vector&, const bool Fatal);
+		int calcRelevantDirs(const Foam::vector&, const label& owner, const label& neighbour, const bool Fatal);
 
 		//- Set up a vectorField holding the vector normals of each face.
 		void calcFaceNormalVector(const pointField&, vectorField&) const;
 		
 		void setIndicators(const label& own, const label& nei, label& ownInd, label& neiInd, const bool refinementBool[]);
 		
-		double getCellDepth();
+		double getCellLength(const label& dimension);
 		double getAspectRatio();
 		
 		Foam::vector setInternalDir
@@ -138,6 +139,15 @@ class hexRef4
 			const labelList& parentAddedCells, 
 			label& own,
 			const int a
+		);
+		
+		void setInternalFaceInfo
+		(
+			const labelListList& cellAddedCells,
+			const label& set,
+			label& own,
+			label& nei,
+			const polyTopoChange& meshMod
 		);
 		
 		void setInternalFaceInfoA1
