@@ -1,6 +1,8 @@
 2D-AMR-OFlib
 ============
 
+(More) Unstable, edited version of the library
+
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
 
 Contains:
