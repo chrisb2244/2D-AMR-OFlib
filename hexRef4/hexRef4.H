@@ -93,8 +93,9 @@ class hexRef4
         refinementTree history_;
         
         // cell Depth and aspect ratio
-        const double aspectX_to_Y_; // Multiply x per cell by this to get y per cell
         const vector cell0Lengths_;
+        const double aspectX_to_Y_; // Multiply x per cell by this to get y per cell
+        
 
         //- Face remover engine
         removeFaces faceRemover_;
@@ -122,17 +123,6 @@ class hexRef4
 		double getCellLength(const label& dimension);
 		double getAspectRatio();
 		
-		Foam::vector setInternalDir
-		(
-			const labelListList& cellAddedCells,
-			const bool refinementBool[],
-			const label& own,
-			const label& nei,
-			const label& ownInd,
-			const label& neiInd,
-			const polyTopoChange& meshMod
-		);
-		
 		void setBoundaryCellInfo
 		(
 			const label& faceI,
@@ -150,26 +140,18 @@ class hexRef4
 			const polyTopoChange& meshMod
 		);
 		
-		void setInternalFaceInfoA1
+		void myGetFaceVertsLists
 		(
-			const labelListList& cellAddedCells,
-			const bool refinementBools[],
-			label& own,
-			label& nei,
-			label& ownInd,
-			label& neiInd,
-			const polyTopoChange& meshMod
+			DynamicList<label> (&newFaceVertsA)[2],
+			const labelList& edgeMidPoint,
+			const label& faceI,
+			polyTopoChange& meshMod
 		);
 		
-		void setInternalFaceInfoA0
+		void mySwitchFaceVerts
 		(
-			const labelListList& cellAddedCells,
-			const bool refinementBools[],
-			label& own,
-			label& nei,
-			label& ownInd,
-			label& neiInd,
-			const polyTopoChange& meshMod
+			labelList& faceVerts,
+			std::string reason = "Switching vertices for an unspecified reason"
 		);
 		
 		void mySplitSideFaces
