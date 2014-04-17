@@ -189,6 +189,12 @@ class hexRef4
 			label& nFacesAdded
 		);
 		
+		void myCombineFaces
+		(
+			const labelList& facesToCombine,
+			DynamicList<Pair<label> >& pairedFaces
+		);
+		
 		Foam::label findEdge
 		(
 			const labelList& targetList,

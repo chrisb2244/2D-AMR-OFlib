@@ -285,36 +285,6 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
 	}
 	return relevantDir;
 }
-/*
-void Foam::hexRef4::setIndicators(const label& own, const label& nei, label& ownInd, label& neiInd, const bool refinementBool[])
-{
-	if (refinementBool[0] && refinementBool[1])
-	{
-		if (debug) Pout<< "Both owner and neighbour passed to setIndicators are refined" << endl;
-		neiInd = cellLevel_[nei] > 0 ? history_.myParentCell(nei) : nei;
-		ownInd = cellLevel_[own] > 0 ? history_.myParentCell(own) : own;
-	}
-	else if (refinementBool[0] && !refinementBool[1])
-	{
-		if (debug) Pout<< "Owner passed to setIndicators is refined" << endl;
-		neiInd = nei;
-		ownInd = cellLevel_[own] > 0 ? history_.myParentCell(own) : own;
-	}
-	else if (!refinementBool[0] && refinementBool[1])
-	{
-		if (debug) Pout<< "Neighbour passed to setIndicators is refined" << endl;
-		neiInd = cellLevel_[nei] > 0 ? history_.myParentCell(nei) : nei;
-		ownInd = own;
-	}
-	else
-	{
-		FatalErrorIn("hexRef4::setIndicators(..)")
-			<< "It seems that neither cell is refined "
-			<< "(or at least, that neither bool is true)"
-			<< nl
-			<< abort(FatalError);
-	}
-}*/
 
 void Foam::hexRef4::setBoundaryCellInfo(const label& faceI, const labelList& parentAddedCells, label& own, const int a)
 {
@@ -543,13 +513,6 @@ void Foam::hexRef4::calcFaceNormalVector(const pointField& p, vectorField& fArea
             // This is to deal with zero-area faces. Mark very small faces
             // to be detected in e.g., processorPolyPatch.
             (sumA < ROOTVSMALL) ? fAreas[facei] = vector::zero : fAreas[facei] = 0.5*sumN;
-            //~ {
-                //~ fAreas[facei] = vector::zero;
-            //~ }
-            //~ else
-            //~ {
-                //~ fAreas[facei] = 0.5*sumN;
-            //~ }
         }
     }
 }
@@ -653,6 +616,7 @@ void Foam::hexRef4::myGetFaceVertsLists
 	centre1 /= 4;
 	
 	vector dir(centre1 - centre0);
+	// Warning: arbitrary value for comparison here - and it screws the mesh if set too small.
 	if (dir[0] < -1E-10 || dir[1] < -1E-10 || dir[2] < -1E-10)
 	{
 		if (debug) Pout<< "Switching vectors newFaceVertsA - original dir = " << dir << endl;
@@ -707,7 +671,6 @@ void Foam::hexRef4::mySplitSideFaces
 		
 	label own = oldOwn;
 	label nei = oldNei;
-	//~ debug=true;
 	if (!mesh_.isInternalFace(faceI)) 
 	// Set values of own/nei for boundary cells,
 	// then add one face and mod the other.
@@ -732,207 +695,74 @@ void Foam::hexRef4::mySplitSideFaces
 	}
 	else // internal cell
 	{
-		if (debug) Pout<< "Internal cell - Initial own/nei are " << oldOwn << ", " << oldNei << endl;
-		/*
-		//~ int cellLevelDiff = cellLevel_[oldOwn] - cellLevel_[oldNei]; // care with own/nei here
-		//~ label ownInd, neiInd;
-		//~ bool refinementBool[4];
-		//~ bool& ownRefined = refinementBool[0];
-		//~ bool& neiRefined = refinementBool[1];
-		//~ bool& ownMoreRefined = refinementBool[2];
-		//~ bool& neiMoreRefined = refinementBool[3];
-		//~ ownRefined = false;
-		//~ neiRefined = false;
-		//~ ownMoreRefined = false;
-		//~ neiMoreRefined = false;
-		//~ switch (cellLevelDiff)
-		//~ {
-			//~ case 0:
-			//~ ownRefined = true;
-			// refinementBool[0]=1;
-			//~ neiRefined = true;
-			// refinementBool[1]=1;
-			//~ break;
-			//~ 
-			//~ case -1:
-			//~ neiRefined = true;
-			// refinementBool[1]=1;
-			//~ // new section
-			//~ forAll(cellAddedCells, cellI)
-			//~ {
-				//~ forAll(cellAddedCells[cellI], i)
-				//~ {
-					//~ if ((cellAddedCells[cellI][i] == oldOwn) && (cellLevel_[oldOwn] > 0) && (i != 0))
-					//~ {
-						//~ neiMoreRefined = true;
-						//~ break;
-					//~ }
-				//~ }
-			//~ }
-			//~ break;
-			//~ 
-			//~ case +1:
-			//~ ownRefined = true;
-			// refinementBool[0]=1;
-			//~ // new section
-			//~ forAll(cellAddedCells, cellI)
-			//~ {
-				//~ forAll(cellAddedCells[cellI], i)
-				//~ {
-					//~ if ((cellAddedCells[cellI][i] == oldNei) && (cellLevel_[oldNei] > 0) && (i != 0)) // I think this only works if nei is being refined this timestep.
-					//~ {
-						//~ ownMoreRefined = true;
-						//~ break;
-					//~ }
-				//~ }
-			//~ }
-			//~ break;
-			//~ 
-			//~ default:
-			//~ FatalErrorIn("hexRef4::setRefinement(..)")
-				//~ << "Change in cell level greater than 1, "
-				//~ << "and not a border cell. Fails to obey "
-				//~ << "the 2-1 refinement rule"
-				//~ << abort(FatalError);
-			//~ break;
-		//~ }
-		//~ if (refinementBool[2] && refinementBool[3])
-		//~ {
-			//~ FatalErrorIn("hexRef4::setRefinement(..)")
-				//~ << "Claims that both owner and neighbour are "
-				//~ << "more refined than the other. "
-				//~ << "refinementBool[4] = "
-				//~ << refinementBool[0]
-				//~ << refinementBool[1]
-				//~ << refinementBool[2]
-				//~ << refinementBool[3]
-				//~ << abort(FatalError);
-		//~ }
-		*/
-		
-		//~ bool requiresSwitch = false;
-		
-		//~ setIndicators(own, nei, ownInd, neiInd, refinementBool);
-		
-		// A1
-		//~ setInternalFaceInfoA1(faceI, cellAddedCells, ownRefined, neiRefined, own, nei, requiresSwitch, ownInd, neiInd);
-		//~ setInternalFaceInfoA1(cellAddedCells, refinementBool, own, nei, ownInd, neiInd, meshMod);
+		if (debug)
+		{
+			Pout<< "Internal cell - Initial own/nei are " << oldOwn << ", " << oldNei << endl;
+			Pout<< "Edges on the (initial) face are : " << mesh_.faceEdges()[faceI] << endl;
+			Pout<< "Points around the initial face are : " << mesh_.faces()[faceI] << endl;
+		}
+
 		setInternalFaceInfo(cellAddedCells, 1, own, nei, meshMod);
 		if (own > nei)
 		{
 			label temp = own;
 			own = nei;
 			nei = temp;
-			//~ temp = ownInd;
-			//~ ownInd = neiInd;
-			//~ neiInd = temp;
-			//~ if (requiresSwitch)
-			//~ {
-				//~ requiresSwitch = false;
-			//~ }
-			//~ else
-			//~ {
-				//~ if (debug) Pout<< "A1. Setting requiresSwitch = true, because own > nei" << endl;
-				//~ requiresSwitch = true;
-				mySwitchFaceVerts(newFaceVertsA[1], "Switching for A=1 face, because own > nei.");
-			//~ }
+			mySwitchFaceVerts(newFaceVertsA[1], "Switching for A=1 face, because own > nei.");
 		}
-		//~ if (requiresSwitch)
-		//~ {
-			//~ if (debug) Pout<< "Switching due to requiresSwitch = true" << endl;
-			//~ label temp = newFaceVertsA[1][0];
-			//~ newFaceVertsA[1][0] = newFaceVertsA[1][2];
-			//~ newFaceVertsA[1][2] = temp;
-		//~ }
+
 		face newFace;
 		newFace.transfer(newFaceVertsA[1]);
-		if (debug)
-		{
-			//~ if (refinementBool[2])
-			//~ {
-			//~ }
-			//~ else if (refinementBool[3])
-			//~ {
-			//~ }
-			//~ else
-			//~ {		
-				//~ checkInternalOrientation
-				//~ (
-					//~ meshMod,
-					//~ own,
-					//~ faceI,
-					//~ mesh_.cellCentres()[ownInd],
-					//~ mesh_.cellCentres()[neiInd],
-					//~ newFace
-				//~ );
-			//~ }
-		}
+		
+		// This needs to be fixed. It might give good clues?
+		label ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
+		label neiInd = nei < mesh_.cellCentres().size() ? nei : history_.myParentCell(nei);
+		
+		checkInternalOrientation
+		(
+			meshMod,
+			own,
+			faceI,
+			mesh_.cellCentres()[ownInd],
+			mesh_.cellCentres()[neiInd],
+			newFace
+		);
+		
 		if (debug) Pout<< "Adding face (a=1) with final own/nei = " << own << ", " << nei << endl;
 		addFace(meshMod, faceI, newFace, own, nei);
 		
 		// A0
 		own = oldOwn; // reset own and nei
 		nei = oldNei;
-		//~ requiresSwitch = false; // reset requiresSwitch
 		
-		//~ setIndicators(own, nei, ownInd, neiInd, refinementBool);
-		
-		//~ setInternalFaceInfoA0(faceI, cellAddedCells, ownRefined, neiRefined, own, nei, requiresSwitch, ownInd, neiInd);
-		//~ setInternalFaceInfoA0(cellAddedCells, refinementBool, own, nei, ownInd, neiInd, meshMod);
 		setInternalFaceInfo(cellAddedCells, 0, own, nei, meshMod);
 		if (own > nei)
 		{
 			label temp = own;
 			own = nei;
 			nei = temp;
-			//~ temp = ownInd;
-			//~ ownInd = neiInd;
-			//~ neiInd = temp;
-			//~ if (requiresSwitch)
-			//~ {
-				//~ requiresSwitch = false;
-			//~ }
-			//~ else
-			//~ {
-				//~ if (debug) Pout<< "A0. Setting requiresSwitch = true, because own > nei" << endl;
-				//~ requiresSwitch = true;
-				mySwitchFaceVerts(newFaceVertsA[0], "Switching for A=0 face, because own > nei.");
-			//~ }
+			mySwitchFaceVerts(newFaceVertsA[0], "Switching for A=0 face, because own > nei.");
 		}
-		//~ if (requiresSwitch)
-		//~ {
-			//~ if (debug) Pout<< "2. Switching due to requiresSwitch = true" << endl;
-			//~ label temp = newFaceVertsA[0][0];
-			//~ newFaceVertsA[0][0] = newFaceVertsA[0][2];
-			//~ newFaceVertsA[0][2] = temp;
-		//~ }
+
 		face sameFace;
 		sameFace.transfer(newFaceVertsA[0]);
-		if (debug)
-		{
-			//~ if (refinementBool[2])
-			//~ {
-			//~ }
-			//~ else if (refinementBool[3])
-			//~ {
-			//~ }
-			//~ else
-			//~ {	
-				//~ checkInternalOrientation
-				//~ (
-					//~ meshMod,
-					//~ own,
-					//~ faceI,
-					//~ mesh_.cellCentres()[ownInd],
-					//~ mesh_.cellCentres()[neiInd],
-					//~ sameFace
-				//~ );
-			//~ }
-		}
+	
+		// As above - fix.
+		ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
+		neiInd = nei < mesh_.cellCentres().size() ? nei : history_.myParentCell(nei);
+		checkInternalOrientation
+		(
+			meshMod,
+			own,
+			faceI,
+			mesh_.cellCentres()[ownInd],
+			mesh_.cellCentres()[neiInd],
+			sameFace
+		);
+		
 		if (debug) Pout<< "Modding face (a=0) with final own/nei = " << own << ", " << nei << endl;
 		modFace(meshMod, faceI, sameFace, own, nei);
 	}
-	//~ debug = false;
 }
 
 void Foam::hexRef4::myCreateInternalFaces
@@ -974,7 +804,7 @@ void Foam::hexRef4::myCreateInternalFaces
 			facesProcessed++;
 		}
 	}
-	if (facesProcessed > 6)
+	if (facesProcessed > 6) // Useless variable? cFaces.size() might do this, and the rest. Not sure which would be faster.
 	{
 		Pout<< "Warning: More than 6 faces processed. Check for errors due to this!" << endl;
 		Pout<< "cellI = " << cellI << ", faces of cellI = " << cFaces << " and faceNormals are ";
@@ -1025,7 +855,7 @@ void Foam::hexRef4::myCreateInternalFaces
 		{
 			// face is offset
 			facesToCombine.append(faceI);
-			if (1 && (facesProcessed - (facesToCombine.size()/2) == 6))
+			if (debug && (facesProcessed - (facesToCombine.size()/2) == 6))
 			{
 				Pout<< "Added faceI = " << faceI << " to a list of faces to combine. ";
 				Pout<< "List: " << facesToCombine;
@@ -1098,6 +928,134 @@ void Foam::hexRef4::myCreateInternalFaces
 		goto MY_CREATE_INTERNAL_FACES_END;
 	}
 	
+	myCombineFaces(facesToCombine, pairedFaces);
+	
+	if (debug)
+	{
+		Pout<< "Adding faces between paired faces: pairedFaces = " << pairedFaces << endl;
+	}
+
+	forAll(pairedFaces, i)
+	{
+		DynamicList<label> sharedPoints(2);
+		DynamicList<label> notSharedPoints[2];
+		const labelList& pF1 = mesh_.faces()[pairedFaces[i].first()];
+		const labelList& pF2 = mesh_.faces()[pairedFaces[i].second()];
+
+		forAll(pF1, pt)
+		{
+			bool shared = false;
+			forAll(pF2, pt2)
+			{
+				if (pF1[pt] == pF2[pt2])
+				{
+					sharedPoints.append(pF1[pt]);
+					shared = true;
+				}
+			}
+			if (!shared)
+			{
+				notSharedPoints[0].append(pF1[pt]);
+			}
+		}
+		forAll(pF2, pt2)
+		{
+			bool shared = false;
+			forAll(sharedPoints, spI)
+			{
+				if (sharedPoints[spI] == pF2[pt2])
+				{
+					shared = true;
+				}
+			}
+			if (!shared)
+			{
+				notSharedPoints[1].append(pF2[pt2]);
+			}
+		}
+		
+		if (sharedPoints.size() != 2)
+		{
+			FatalErrorIn("myCreateInternalFaces(..)")
+				<< "The number of shared points found was not equal to 2. "
+				<< "Shared points: "
+				<< sharedPoints
+				<< abort(FatalError);
+		}
+		
+		newFaceVerts.append(sharedPoints[0]);
+		newFaceVerts.append(sharedPoints[1]);
+		newFaceVerts.append(faceMidPoint2);
+		newFaceVerts.append(faceMidPoint1);
+
+		point newCentre(0,0,0);
+		
+		// Get the centre of the combined face, so that the direction to the face
+		// can be calculated. sharedPoints[0,1] don't have values in mesh_.points()
+		// and so cannot be used here (or else that would be preferable!)
+		label faceI = pairedFaces[i].first();
+		forAll(mesh_.faces()[faceI], pt)
+		{
+			label point = mesh_.faces()[faceI][pt];
+			newCentre += mesh_.points()[point];
+			if (debug) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
+		}
+		faceI = pairedFaces[i].second();
+		forAll(mesh_.faces()[faceI], pt)
+		{
+			label point = mesh_.faces()[faceI][pt];
+			newCentre += mesh_.points()[point];
+			if (debug) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
+		}
+		newCentre /= 8;
+		
+		if (debug)
+		{
+			Pout<< "newFaceVerts = " << newFaceVerts
+				<< " and newCentre = " << newCentre << endl;
+		}
+		vector directionToFaceFromCentre(newCentre - mesh_.cellCentres()[cellI]);
+		label relevantDir = calcRelevantDirs(directionToFaceFromCentre);
+		if (debug) Pout<< "directionToFaceFromCentre = " << directionToFaceFromCentre << ", relevantDir = " << relevantDir << endl;
+		
+		myCreateInternalFacesSubSection
+		(
+			newFaceVerts,
+			relevantDir,
+			cellI,
+			pairedFaces[i].first(),
+			cellAddedCells,
+			meshMod,
+			nFacesAdded
+		);
+	}
+		
+	MY_CREATE_INTERNAL_FACES_END:
+	
+	if (nFacesAdded != 4)
+	{
+		FatalErrorIn("myCreateInternalFaces(..)")
+			<< "The number of faces added by myCreateInternalFaces "
+			<< "was not equal to 4. Instead, " << nFacesAdded
+			<< " were added."
+			<< abort(FatalError);
+	}
+}
+
+void Foam::hexRef4::myCombineFaces
+(
+	const labelList& facesToCombine,
+	DynamicList<Pair<label> >& pairedFaces
+)
+{
+	if (facesToCombine.size()%2 != 0)
+	{
+		FatalErrorIn("myCreateInternalFaces(..)")
+			<< "The list of faces to combine does not contain an even number of faces. "
+			<< "List: " << facesToCombine << abort(FatalError);
+	}
+	label numPairedFaces = facesToCombine.size() / 2;
+	
 	forAll(facesToCombine, i)
 	{
 		label refDir = calcRelevantDirs(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
@@ -1128,7 +1086,8 @@ void Foam::hexRef4::myCreateInternalFaces
 				pairedFaces.append(Pair<label>(facesToCombine[i], facesToCombine[j]));
 			}
 		}
-	}	
+	}
+	
 	if (pairedFaces.size() != numPairedFaces)
 	{
 		List<vector> listOfNormals;
@@ -1149,94 +1108,6 @@ void Foam::hexRef4::myCreateInternalFaces
 			<< "List of faceCentres = " << listOfFaceCentres << nl
 			<< abort(FatalError);
 	}
-	
-	if (1 && pairedFaces.size())
-	{
-		Pout<< "pairedFaces = " << pairedFaces << endl;
-	}
-	
-	if (debug) Pout<< "Adding faces between paired faces: numPairs = " << numPairedFaces << endl;
-	forAll(pairedFaces, i)
-	{
-		DynamicList<label> sharedPoints(2);
-		const labelList& pF1 = mesh_.faces()[pairedFaces[i].first()];
-		const labelList& pF2 = mesh_.faces()[pairedFaces[i].second()];
-
-		forAll(pF1, pt)
-		{
-			
-			forAll(pF2, pt2)
-			{
-				if (pF1[pt] == pF2[pt2])
-				{
-					sharedPoints.append(pF1[pt]);
-				}
-			}
-		}
-		if (sharedPoints.size() != 2)
-		{
-			FatalErrorIn("myCreateInternalFaces(..)")
-				<< "The number of shared points found was not equal to 2. "
-				<< "Shared points: "
-				<< sharedPoints
-				<< abort(FatalError);
-		}
-		newFaceVerts.append(sharedPoints[0]);
-		newFaceVerts.append(sharedPoints[1]);
-		newFaceVerts.append(faceMidPoint2);
-		newFaceVerts.append(faceMidPoint1);
-
-		point newCentre(0,0,0);
-		
-		label faceI = pairedFaces[i].first();
-		forAll(mesh_.faces()[faceI], pt)
-		{
-			label point = mesh_.faces()[faceI][pt];
-			newCentre += mesh_.points()[point];
-			if (debug) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
-		}
-		faceI = pairedFaces[i].second();
-		forAll(mesh_.faces()[faceI], pt)
-		{
-			label point = mesh_.faces()[faceI][pt];
-			newCentre += mesh_.points()[point];
-			if (debug) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
-		}
-		
-		newCentre /= 8;
-		if (debug)
-		{
-			Pout<< "newFaceVerts = " << newFaceVerts
-				<< " and newCentre = " << newCentre << endl;
-		}
-		vector directionToFaceFromCentre(newCentre - mesh_.cellCentres()[cellI]);
-		//~ vector directionToFaceFromCentre(mesh_.cellCentres()[cellI]-newCentre);
-		label relevantDir = calcRelevantDirs(directionToFaceFromCentre);
-		
-		myCreateInternalFacesSubSection
-		(
-			newFaceVerts,
-			relevantDir,
-			cellI,
-			pairedFaces[i].first(),
-			cellAddedCells,
-			meshMod,
-			nFacesAdded
-		);
-
-		if (debug) Pout<< "directionToFaceFromCentre = " << directionToFaceFromCentre << endl;
-	}
-		
-	MY_CREATE_INTERNAL_FACES_END:
-	
-	if (nFacesAdded != 4)
-	{
-		FatalErrorIn("myCreateInternalFaces(..)")
-			<< "The number of faces added by myCreateInternalFaces "
-			<< "was not equal to 4. Instead, " << nFacesAdded
-			<< " were added."
-			<< abort(FatalError);
-	}
 }
 
 void Foam::hexRef4::myCreateInternalFacesSubSection
@@ -1255,7 +1126,7 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 		Pout<< "The newFaceVerts (for added internal faces) are " << newFaceVerts << endl;
 		Pout<< "relevantDir = " << relevantDir << endl;
 	}
-	bool requiresSwitch = false;
+
 	label own = -50, nei = -50;
 	switch (relevantDir)
 	{
@@ -1267,13 +1138,13 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 		case -1:
 		own = cellAddedCells[cellI][0];
 		nei = cellAddedCells[cellI][2];
-		requiresSwitch = true;
+		mySwitchFaceVerts(newFaceVerts);
 		break;
 		
 		case +2:
 		own = cellAddedCells[cellI][2];
 		nei = cellAddedCells[cellI][3];
-		requiresSwitch = true;
+		mySwitchFaceVerts(newFaceVerts);
 		break;
 		
 		case -2:
@@ -1287,14 +1158,6 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 			<< " to an expected direction (x, y)"
 			<< abort(FatalError);
 		break;
-	}
-
-	if (requiresSwitch)
-	{
-		mySwitchFaceVerts(newFaceVerts);
-		//~ label temp = newFaceVerts[0];
-		//~ newFaceVerts[0] = newFaceVerts[2];
-		//~ newFaceVerts[2] = temp;
 	}
 	
 	face newFace;
@@ -1330,7 +1193,13 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 			<< abort(FatalError);
 	}
 	nFacesAdded++;
-	if (debug) Pout<< "A face was added between new cells own/nei = " << meshMod.faceOwner()[faceLabel] << ", " << meshMod.faceNeighbour()[faceLabel] << endl;
+	
+	if (debug)
+	{
+		Pout<< "A face was added between new cells own/nei = "
+			<< meshMod.faceOwner()[faceLabel] << ", " 
+			<< meshMod.faceNeighbour()[faceLabel] << endl;
+	}
 }
 
 Foam::label Foam::hexRef4::findEdge
@@ -2131,6 +2000,7 @@ void Foam::hexRef4::checkInternalOrientation
             << " neiPt:" << neiPt
 			<< " dir:" << dir
 			<< " n:" << n
+			<< nl << "Direction from ownPt to neiPt was opposite to face normal"
             << abort(FatalError);
     }
 
@@ -2147,6 +2017,7 @@ void Foam::hexRef4::checkInternalOrientation
             << " ownPt:" << ownPt
             << " neiPt:" << neiPt
             << " s:" << s
+            << nl << "Scalar s was not between 0.1 and 0.9"
             << abort(FatalError);
     }
 }
@@ -5377,12 +5248,37 @@ Foam::labelListList Foam::hexRef4::setRefinement
     // This section is called seemingly when faces are already split, and are 
     // (going to be) grouped as pairedFaces in myCreateInternalFaces.
     // Needs to be written to reflect that.
+    if (0){
     if (title_debug)
     {
         Pout<< "hexRef4::setRefinement :"
             << " Changing owner/neighbour for otherwise unaffected faces"
             << endl;
     }
+    
+    labelList remainingFaces;
+    forAll(affectedFace, faceI)
+    {
+        if (affectedFace.get(faceI))
+        {
+			remainingFaces.append(faceI);
+		}
+	}
+	DynamicList<Pair<label> > pairedFaces;
+	myCombineFaces(remainingFaces, pairedFaces);
+	forAll(pairedFaces, i)
+	{
+		label& pf1 = pairedFaces[i].first();
+		label& pf2 = pairedFaces[i].second();
+		vector dir(mesh_.faceCentres()[pf2] - mesh_.faceCentres()[pf1]);
+		if (dir[0] < -1E-10 || dir[1] < -1E-10)
+		{
+			label temp = pf1;
+			pf1 = pf2;
+			pf2 = temp;
+		}
+	}
+	
     forAll(affectedFace, faceI)
     {
         if (affectedFace.get(faceI))
@@ -5393,28 +5289,85 @@ Foam::labelListList Foam::hexRef4::setRefinement
             // point of the neighbouring cells.
             label anchorFp = findMinLevel(f);
 
-            label own, nei;
-            getFaceNeighbours
-            (
-                cellAnchorPoints,
-                cellAddedCells,
-                faceI,
-                f[anchorFp],          // Anchor point
-                own,
-                nei
-            );
+			Pout<< "Before calling getFaceNeighbours, own = " << mesh_.faceOwner()[faceI]
+				<< " and nei = " << mesh_.faceNeighbour()[faceI] << endl;
 
-            modFace(meshMod, faceI, f, own, nei);
+            label own = mesh_.faceOwner()[faceI];
+            label nei = mesh_.faceNeighbour()[faceI];
+            //~ getFaceNeighbours
+            //~ (
+                //~ cellAnchorPoints,
+                //~ cellAddedCells,
+                //~ faceI,
+                //~ f[anchorFp],          // Anchor point
+                //~ own,
+                //~ nei
+            //~ );
+            //~ 
+            //~ Pout<< "After calling getFaceNeighbours, own = " << own
+				//~ << " and nei = " << nei << endl;
+				
+			
+            
+			// Check for cellAddedCells[oldOwn].size()
+			if (!cellAddedCells[own].size() && !cellAddedCells[nei].size())
+			{
+				FatalErrorIn("setRefinement(..)")
+					<< "Section 3 of the face splitting gave an owner AND "
+					<< "neighbour cell which were not refined in this timestep. "
+					<< "This is (I think) an error."
+					<< abort(FatalError);
+			}
+			
+			// Set new own, nei
+			label set=-1;
+			forAll(pairedFaces, i)
+			{
+				if (pairedFaces[i].first() == faceI)
+				{
+					set = 0;
+					break;
+				}
+				
+				if (pairedFaces[i].second() == faceI)
+				{
+					set = 1;
+					break;
+				}
+			}
+			setInternalFaceInfo(cellAddedCells, set, own, nei, meshMod);
+			Pout<< "Now have values own = " << own
+				<< ", nei = " << nei << endl;
+			
+			face faceRef = f;
+			if (own > nei)
+			{
+				label temp = own;
+				own = nei;
+				nei = temp;
+				faceRef = faceRef.reverseFace();
+				if (debug) Pout<< "Flipping own/nei and the face, since own > nei" << endl;
+			}
+			
+			// modFace
+			Pout<< "Modding face with final values own = " << own
+				<< ", nei = " << nei << endl;
+            modFace(meshMod, faceI, faceRef, own, nei);
+            
+            point ownPt = own < cellAddedCells.size() ? mesh_.cellCentres()[own] : mesh_.cellCentres()[history_.myParentCell(own)];
+            point neiPt = nei < cellAddedCells.size() ? mesh_.cellCentres()[nei] : mesh_.cellCentres()[history_.myParentCell(nei)];
+            checkInternalOrientation(meshMod, own, faceI, ownPt, neiPt, faceRef);
 
             // Mark face as having been handled
             if (1)
             {
 				Pout<< "faceI = " << faceI << " was handled by part 3 of the face splitting section" << endl;
 			}
+
             affectedFace.unset(faceI);
         }
-    }
-
+    }}
+    
     // 4. new internal faces inside split cells.
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (title_debug)
@@ -5444,40 +5397,43 @@ Foam::labelListList Foam::hexRef4::setRefinement
 
     // Extend pointLevels and cellLevels for the new cells. Could also be done
     // in updateMesh but saves passing cellAddedCells out of this routine.
-
+	
+	// This section won't work, since mesh_.nPoints is already increased.
+	// It's possible that maxPointI = mesh_.nPoints() - 1, but I don't know
+	// if that's a worthwhile check.
     // Check
-    if (debug)
-    {
-        label minPointI = labelMax;
-        label maxPointI = labelMin;
-
-        forAll(cellMidPoint, cellI)
-        {
-            if (cellMidPoint[cellI] >= 0)
-            {
-                minPointI = min(minPointI, cellMidPoint[cellI]);
-                maxPointI = max(maxPointI, cellMidPoint[cellI]);
-            }
-        }
-        forAll(faceMidPoint, faceI)
-        {
-            if (faceMidPoint[faceI] >= 0)
-            {
-                minPointI = min(minPointI, faceMidPoint[faceI]);
-                maxPointI = max(maxPointI, faceMidPoint[faceI]);
-            }
-        }
-        forAll(edgeMidPoint, edgeI)
-        {
-            if (edgeMidPoint[edgeI] >= 0)
-            {
-                minPointI = min(minPointI, edgeMidPoint[edgeI]);
-                maxPointI = max(maxPointI, edgeMidPoint[edgeI]);
-            }
-        }
-
-        if (minPointI != labelMax && minPointI != mesh_.nPoints())
-        {
+    //~ if (debug)
+    //~ {
+        //~ label minPointI = labelMax;
+        //~ label maxPointI = labelMin;
+//~ 
+        //~ forAll(cellMidPoint, cellI)
+        //~ {
+            //~ if (cellMidPoint[cellI] >= 0)
+            //~ {
+                //~ minPointI = min(minPointI, cellMidPoint[cellI]);
+                //~ maxPointI = max(maxPointI, cellMidPoint[cellI]);
+            //~ }
+        //~ }
+        //~ forAll(faceMidPoint, faceI)
+        //~ {
+            //~ if (faceMidPoint[faceI] >= 0)
+            //~ {
+                //~ minPointI = min(minPointI, faceMidPoint[faceI]);
+                //~ maxPointI = max(maxPointI, faceMidPoint[faceI]);
+            //~ }
+        //~ }
+        //~ forAll(edgeMidPoint, edgeI)
+        //~ {
+            //~ if (edgeMidPoint[edgeI] >= 0)
+            //~ {
+                //~ minPointI = min(minPointI, edgeMidPoint[edgeI]);
+                //~ maxPointI = max(maxPointI, edgeMidPoint[edgeI]);
+            //~ }
+        //~ }
+//~ 
+        //~ if (minPointI != labelMax && minPointI != mesh_.nPoints())
+        //~ {
             //~ FatalErrorIn("hexRef4::setRefinement(..)")
                 //~ << "Added point labels not consecutive to existing mesh points."
                 //~ << nl
@@ -5485,18 +5441,18 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 //~ << " minPointI:" << minPointI
                 //~ << " maxPointI:" << maxPointI
                 //~ << abort(FatalError);
-            Pout<< "Warning: Serious? This was previously a fatal error, but "
-				<< "is modified given the relocation of some history_ resizing "
-				<< "parts. Error as follows: " << nl
-				<< "Added point labels not consecutive to existing mesh points."
-                << nl
-                << "labelMax:" << labelMax
-                << "mesh_.nPoints():" << mesh_.nPoints()
-                << " minPointI:" << minPointI
-                << " maxPointI:" << maxPointI
-                << endl;
-        }
-    }
+            //~ Pout<< "Warning: Serious? This was previously a fatal error, but "
+				//~ << "is modified given the relocation of some history_ resizing "
+				//~ << "parts. Error as follows: " << nl
+				//~ << "Added point labels not consecutive to existing mesh points."
+                //~ << nl
+                //~ << "labelMax:" << labelMax
+                //~ << "mesh_.nPoints():" << mesh_.nPoints()
+                //~ << " minPointI:" << minPointI
+                //~ << " maxPointI:" << maxPointI
+                //~ << endl;
+        //~ }
+    //~ }
 
     // Mark files as changed
     setInstance(mesh_.facesInstance());
