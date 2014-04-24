@@ -1,6 +1,9 @@
 2D-AMR-OFlib
 ============
 
+Acknowledgements : Vincent Rivola (vinz @ cfd-online forums) for sending a 2D damBreak with obstacle
+case to test.
+
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
 
 Contains:
