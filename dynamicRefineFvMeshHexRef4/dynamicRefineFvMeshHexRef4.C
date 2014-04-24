@@ -110,7 +110,6 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::twoDNess(const polyMesh& mesh)
         return -1;
     }
 
-
     //
     // 1. All cell centres on single plane aligned with x, y or z
     //
@@ -139,6 +138,7 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::twoDNess(const polyMesh& mesh)
     {
         // Cannot find cell to make decent angle with cell0-cell1 vector.
         // Note: what to do here? All cells (almost) in one line. Maybe 1D case?
+        Pout<< "All cells seem to be in one line. Returning -1 from twoDNess" << endl;
         return -1;
     }
 

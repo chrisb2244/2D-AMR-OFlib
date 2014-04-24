@@ -1254,6 +1254,8 @@ void Foam::refinementTree::storeSplit
     else
     {
 		Pout<< "Don't expect this to be called from storeSplit." << endl;
+		Pout<< "The value of visibleCells_[cellI] for cellI = " << cellI << " is ";
+		Pout<< visibleCells_[cellI] << endl;
         // Create 0th level. -1 parent to denote this.
         parentIndex = allocateSplitCell(-1, -1);
     }

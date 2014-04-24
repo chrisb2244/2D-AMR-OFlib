@@ -504,6 +504,7 @@ hexRef4/hexRef4.dep: $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/prismMatcher.H
 hexRef4/hexRef4.dep: $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/tetWedgeMatcher.H
 hexRef4/hexRef4.dep: $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/pyrMatcher.H
 hexRef4/hexRef4.dep: $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/tetMatcher.H
+hexRef4/hexRef4.dep: lnInclude/sortFaces.H
 $(OBJECTS_DIR)/hexRef4.o: $(EXE_DEP)
 $(OBJECTS_DIR)/hexRef4.o:
 	@SOURCE_DIR=hexRef4

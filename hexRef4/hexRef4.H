@@ -131,6 +131,16 @@ class hexRef4
 			const int a
 		);
 		
+		//~ void setInternalFaceInfo
+		//~ (
+			//~ const labelListList& cellAddedCells,
+			//~ const label& set,
+			//~ label& own,
+			//~ label& nei,
+			//~ const polyTopoChange& meshMod,
+			//~ bool& isAFace
+		//~ );
+		
 		void setInternalFaceInfo
 		(
 			const labelListList& cellAddedCells,
@@ -169,7 +179,6 @@ class hexRef4
 		(
 			const labelListList& cellAnchorPoints,
 			const labelListList& cellAddedCells,
-			const labelList& cellMidPoint,
 			const labelList& faceMidPoint,
 			const labelList& edgeMidPoint,
 			const label& cellI,
@@ -440,6 +449,7 @@ public:
     //- Runtime type information
     ClassName("hexRef4");
 
+    static bool extended_debug;
 
     // Constructors
 
