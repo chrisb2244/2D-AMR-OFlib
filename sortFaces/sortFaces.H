@@ -22,26 +22,11 @@ License
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
     
 Description
-	This class (regenerateAlphaClass) is used to generate cosine-wave
-	based perturbations to an interface between two fluids, for solution
-	with solvers such as interDyMFoam or interFoam.
+	This class (sortFaces) is used to create lists of faces that are being
+	refined, and then order them, and sum their second values, giving reasons
+	for refinement.
 	
-	A dictionary named "yPerturbationDict" contains information about
-	the shape and extent of the perturbation. An example yPerturbationDict
-	would be as follows:
-	
-	// -------------------------------------- \\
-
-	kStart = 1 	// The lowest wavenumber to perturb
-	kEnd = 5	// The highest wavenumber to perturb
-	numKs = 5	// The number of wavenumbers between 
-				// kStart and kEnd to perturb
-	yScalingFactor = 0.15
-				// The amplitude to use (in combination
-				// with a random (seeded) number)
-				// as a prefactor for the perturbation
-
-	\\ -------------------------------------- //
+	An example use is given in hexRef4.C
 
 \*---------------------------------------------------------------------------*/
 
