@@ -1,6 +1,9 @@
 2D-AMR-OFlib
 ============
 
+Note: This library may require OpenFOAM version 2.3.0 (or greater?).
+Errors are reported with OF-2.1.1.
+
 (More) Unstable, edited version of the library
 
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
