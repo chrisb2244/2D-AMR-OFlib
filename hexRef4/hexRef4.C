@@ -785,7 +785,6 @@ void Foam::hexRef4::mySplitSideFaces
 			label temp = own;
 			own = nei;
 			nei = temp;
-			//~ mySwitchFaceVerts(newFaceVertsA[0], "Switching for A=0 face, because own > nei.");
 			sameFace = sameFace.reverseFace();
 			if (debug) Pout<< "Flipping face and own/nei in mySplitSideFaces for A0 face." << endl;
 		}
@@ -1184,28 +1183,31 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 	face newFace;
 	newFace.transfer(newFaceVerts);
 	
+	bool toggle = 0;
 	switch (relevantDir)
 	{
 		case +1:
 		own = cellAddedCells[cellI][1];
 		nei = cellAddedCells[cellI][3];
+		if (toggle) newFace = newFace.reverseFace();
 		break;
 		
 		case -1:
 		own = cellAddedCells[cellI][0];
 		nei = cellAddedCells[cellI][2];
-		newFace = newFace.reverseFace();
+		if (!toggle) newFace = newFace.reverseFace();
 		break;
 		
 		case +2:
 		own = cellAddedCells[cellI][2];
 		nei = cellAddedCells[cellI][3];
-		newFace = newFace.reverseFace();
+		if (!toggle) newFace = newFace.reverseFace();
 		break;
 		
 		case -2:
 		own = cellAddedCells[cellI][0];
 		nei = cellAddedCells[cellI][1];
+		if (toggle) newFace = newFace.reverseFace();
 		break;
 		
 		default:
