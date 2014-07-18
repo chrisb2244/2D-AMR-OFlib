@@ -4,7 +4,10 @@
 Note: This library may require OpenFOAM version 2.3.0 (or greater?).
 Errors are reported with OF-2.1.1.
 
-(More) Unstable, edited version of the library
+
+Acknowledgements : 
+	Vincent Rivola (vinz @ cfd-online forums) - for sending a 2D damBreak with obstacle case to test.
+	James Carow - for presenting the same error as VR and alerting me to possible version dependency (Currently unresolved)
 
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
 
@@ -80,9 +83,16 @@ Contains:
 	generate a new seed each time you initialise an object of 
 	regenerateAlphaClass type within the solver).
 
+	sortFaces:
+	Used in hexRef4 to sort and print lists of faces to be refined, along
+	with a rudimentary description of why faces are set to be refined.
+	Will be removed when everything works well (at least for dependencies)
+	Might leave the files in just so that they can be used if wanted.
+
 	ToDo:
-	Fix mySplitSideFaces() for complicated interface patterns.
-	Remove unnecessary added functions (probably by commenting out).
+	Test and improve for the damBreak 2D case.
+	Determine reasoning for errors in pairedFaces for part 3 face
+	splitting.
 	Implement unrefinement.
 	Check through flux corrections for updateAtZero/refineAtZero. Not all 
 	fields 	exist at that point, so relatively few need correction, but at
