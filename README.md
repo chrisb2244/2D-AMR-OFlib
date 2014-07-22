@@ -7,9 +7,8 @@ Errors are reported with OF-2.1.1.
 
 Acknowledgements : 
 
-  Vincent Rivola (vinz @ cfd-online forums) - for sending a 2D damBreak with obstacle case to test.
-
-  James Carow - for presenting the same error as VR and alerting me to possible version dependency (Currently unresolved)
+	Vincent Rivola (vinz @ cfd-online forums) - for sending a 2D damBreak with obstacle case to test.
+	James Carow - for presenting the same error as VR and alerting me to possible version dependency (Currently unresolved)
 
 
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
