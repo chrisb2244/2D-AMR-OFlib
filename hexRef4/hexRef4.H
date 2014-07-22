@@ -109,6 +109,8 @@ class hexRef4
         //- cell shapes when seen as split hexes
         mutable autoPtr<cellShapeList> cellShapesPtr_;
         
+        const bool boolToggle_;
+        
     // Private Member Functions
 
 		Foam::vector calcSingleFaceNormal(const pointField&, const label&) const;
@@ -122,6 +124,8 @@ class hexRef4
 		
 		double getCellLength(const label& dimension);
 		double getAspectRatio();
+		
+		bool readToggle();
 		
 		void setBoundaryCellInfo
 		(

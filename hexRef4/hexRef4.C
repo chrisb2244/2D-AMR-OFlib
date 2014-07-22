@@ -194,6 +194,41 @@ double Foam::hexRef4::getAspectRatio()
 	return -1;
 }
 
+bool Foam::hexRef4::readToggle()
+{
+	dictionary refineDict
+	(
+		IOdictionary
+		(
+			IOobject
+			(
+				"dynamicMeshDict",
+				mesh_.time().constant(),
+				mesh_,
+				IOobject::MUST_READ_IF_MODIFIED,
+				IOobject::NO_WRITE,
+				false
+			)
+		).subDict(typeName + "Coeffs")
+	);
+	
+	const int deflt = 0;
+	const bool recursv = false;
+	const bool patternMtch = false;
+	int toggle = refineDict.lookupOrDefault<int> ("toggle", deflt, recursv, patternMtch);
+	if ((toggle != 0) && (toggle != 1))
+	{
+		FatalErrorIn("readToggle()")
+			<< "The value of toggle read was not equal to 0 or 1."
+			<< abort(FatalError);
+	}
+	else
+	{
+		return toggle;
+	}
+	return 0;
+}
+
 int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const bool Fatal)
 {
 	return calcRelevantDirs(dir, -20, -20, Fatal);
@@ -1183,7 +1218,7 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 	face newFace;
 	newFace.transfer(newFaceVerts);
 	
-	bool toggle = 0;
+	bool toggle = boolToggle_;
 	switch (relevantDir)
 	{
 		case +1:
@@ -2925,7 +2960,8 @@ Foam::hexRef4::hexRef4(const polyMesh& mesh, const bool readHistory)
 	aspectX_to_Y_(getAspectRatio()),
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
-    savedCellLevel_(0)
+    savedCellLevel_(0),
+    boolToggle_(readToggle())
 {
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
@@ -3073,7 +3109,8 @@ Foam::hexRef4::hexRef4
 	aspectX_to_Y_(getAspectRatio()),
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
-    savedCellLevel_(0)
+    savedCellLevel_(0),
+    boolToggle_(readToggle())
 {
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
@@ -3204,7 +3241,8 @@ Foam::hexRef4::hexRef4
 	aspectX_to_Y_(getAspectRatio()),
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
-    savedCellLevel_(0)
+    savedCellLevel_(0),
+    boolToggle_(readToggle())
 {
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
