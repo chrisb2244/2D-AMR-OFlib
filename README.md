@@ -11,6 +11,17 @@ Acknowledgements :
 
 Library set based on dynamicRefineFvMesh and the libdynamicfvmesh.so for OpenFOAM to allow 2D AMR
 
+The dynamicMeshDict in <case>/constant should be changed to read:
+
+	dynamicFvMesh dynamicRefineFvMeshHexRef4;
+	dynamicRefineFvMeshHexRef4Coeffs
+	{
+		...
+		// Standard options here
+		...
+		toggle = 0; // or 1, see toggle_Explanation file
+	}
+
 Contains:
 
 	dynamicRefineFvMeshHexRef4:
