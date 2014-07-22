@@ -1,3 +1,7 @@
 If you have problems in your second refinement step, giving messages like
 "Direction from ownPt to neiPt was opposite to face normal", try switching the
 toggle variable in <case>/constant/dynamicMeshDict first.
+
+The variable should hold the value of 0 or 1. If the variable is not found in
+the dynamicMeshDict *Coeffs{...} subdictionary, it will default to a value of
+0.
