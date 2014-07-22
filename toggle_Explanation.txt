@@ -1,0 +1,3 @@
+If you have problems in your second refinement step, giving messages like
+"Direction from ownPt to neiPt was opposite to face normal", try switching the
+toggle variable in <case>/constant/dynamicMeshDict first.
