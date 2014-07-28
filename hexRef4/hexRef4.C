@@ -209,7 +209,7 @@ bool Foam::hexRef4::readToggle()
 				IOobject::NO_WRITE,
 				false
 			)
-		).subDict(typeName + "Coeffs")
+		)
 	);
 	
 	const int deflt = 0;

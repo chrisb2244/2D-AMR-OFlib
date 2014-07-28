@@ -21,8 +21,8 @@ The dynamicMeshDict in \<case\>/constant should be changed to read:
 		...
 		// Standard options here
 		...
-		toggle = 0; // or 1, see toggle_Explanation file
 	}
+	toggle = 0; // or 1, see toggle_Explanation file
 
 Contains:
 
