@@ -96,6 +96,16 @@ Contains:
 	generate a new seed each time you initialise an object of 
 	regenerateAlphaClass type within the solver).
 
+	hexRef4/DIAG_List:
+	Used to store pointers to each of the many DIAG_XYZ booleans being
+	held in hexRef4 now, which allow easy customization of the output
+	to log files of diagnostic/info messages. These can be (currently) 
+	changed using the format 
+	*((hexRef4object).diagList.myMap["nameOfVar"]) = true/false;
+	This is likely to be changed to a function, to make it simpler to 
+	access and allow some automated checking of the validity of the 
+	name passed.
+
 	sortFaces:
 	Used in hexRef4 to sort and print lists of faces to be refined, along
 	with a rudimentary description of why faces are set to be refined.
