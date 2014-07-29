@@ -1,5 +1,6 @@
 dynamicRefineFvMeshHexRef4/dynamicRefineFvMeshHexRef4.C
 hexRef4/hexRef4.C
+hexRef4/DIAG_List.C
 refinementTree/refinementTree.C
 regenerateAlphaClass/regenerateAlphaClass.C
 sortFaces/sortFaces.C

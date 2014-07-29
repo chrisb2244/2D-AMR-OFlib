@@ -55,6 +55,8 @@ SourceFiles
 
 #include "fvMesh.H"
 #include "primitiveMesh.H"
+
+#include "DIAG_List.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -130,6 +132,7 @@ class hexRef4
         bool DIAG_UpdateMesh;
         bool DIAG_CellShapes;
         bool DIAG_Unrefinement;
+        DIAG_List diagList;
         
     // Private Member Functions
 
@@ -154,16 +157,6 @@ class hexRef4
 			label& own,
 			const int a
 		);
-		
-		//~ void setInternalFaceInfo
-		//~ (
-			//~ const labelListList& cellAddedCells,
-			//~ const label& set,
-			//~ label& own,
-			//~ label& nei,
-			//~ const polyTopoChange& meshMod,
-			//~ bool& isAFace
-		//~ );
 		
 		void setInternalFaceInfo
 		(
@@ -229,7 +222,7 @@ class hexRef4
 		);
 		
 		// Get the default diagnostic verbosity levels
-		void myReadDiagDict();
+		DIAG_List myReadDiagDict();
 		
 		Foam::label findEdge
 		(

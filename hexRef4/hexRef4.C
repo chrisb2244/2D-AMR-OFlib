@@ -54,6 +54,7 @@ License
 #include "primitiveMesh.H"
 
 #include "sortFaces.H" 
+#include "DIAG_List.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -237,8 +238,11 @@ bool Foam::hexRef4::readToggle()
 	return 0;
 }
 
-void Foam::hexRef4::myReadDiagDict()
+Foam::DIAG_List Foam::hexRef4::myReadDiagDict()
 {
+	// Read diagnostic levels for verbosity
+	// If not present, default to false in all cases.
+	
 	dictionary diagDict
 	(
 		IOdictionary
@@ -255,59 +259,32 @@ void Foam::hexRef4::myReadDiagDict()
 		)
 	);
 	
-	// Read diagnostic levels for verbosity
-	// If not present, default to false in all cases.
-	const bool default_Diag = false;
-	const bool recursive_Search = false;
-	const bool pattern_Matching = false;
+	DIAG_List diagList(diagDict);
 	
-	#define LUOD(NAME) diagDict.lookupOrDefault<bool> (NAME, default_Diag, recursive_Search, pattern_Matching)
-	DIAG_ReportDiagnosticLevels = LUOD("ReportDiags");
-	DIAG_CalcRelevantDirs = LUOD("CalcRelevantDirsDiag");
-	DIAG_GetAspectRatio = LUOD("AspectRatioDiag");
-	DIAG_GetCellLength = LUOD("CellLengthDiag");
-	DIAG_SetBoundaryCellInfo = LUOD("BoundaryCellInfoDiag");
-	DIAG_SetInternalFaceInfo = LUOD("InternalFaceInfoDiag");
-	DIAG_Switch = LUOD("SwitchDiag");
-	DIAG_SplitSideFaces = LUOD("SplitSidesDiag");
-	DIAG_SplitSideFaces_Extended = LUOD("SplitSidesDiag_Extended");
-	DIAG_CreateInternalFaces = LUOD("CreateIntFacesDiag");
-	DIAG_SetRefinement = LUOD("SetRefinementDiag");
-	DIAG_SetRefinementTitles = LUOD("SetRefinementDiag_Titles");
-	DIAG_SetRefinement_List = LUOD("SetRefinementDiag_Reasons");
-	DIAG_SetRefinement_Part3 = LUOD("SetRefinementDiag_Part3");	
-	DIAG_GenericDebug = LUOD("GenericDebug");
-	DIAG_UpdateMesh = LUOD("UpdateMeshDiag");
-	DIAG_Unrefinement = LUOD("UnrefineDiag");
-	#undef LUOD
+	diagList.addToList("ReportDiags", DIAG_ReportDiagnosticLevels);
+	diagList.addToList("CalcRelevantDirsDiag", DIAG_CalcRelevantDirs);
+	diagList.addToList("AspectRatioDiag", DIAG_GetAspectRatio);
+	diagList.addToList("CellLengthDiag", DIAG_GetCellLength);
+	diagList.addToList("BoundaryCellInfoDiag", DIAG_SetBoundaryCellInfo);
+	diagList.addToList("InternalFaceInfoDiag", DIAG_SetInternalFaceInfo);
+	diagList.addToList("SwitchDiag", DIAG_Switch);
+	diagList.addToList("SplitSidesDiag", DIAG_SplitSideFaces);
+	diagList.addToList("SplitSidesDiag_Extended", DIAG_SplitSideFaces_Extended);
+	diagList.addToList("CreateIntFacesDiag", DIAG_CreateInternalFaces);
+	diagList.addToList("SetRefinementDiag", DIAG_SetRefinement);
+	diagList.addToList("SetRefinementDiag_List", DIAG_SetRefinement_List);
+	diagList.addToList("SetRefinementDiag_Titles", DIAG_SetRefinementTitles);
+	diagList.addToList("SetRefinementDiag_Part3", DIAG_SetRefinement_Part3);
+	diagList.addToList("GenericDebug", DIAG_GenericDebug);
+	diagList.addToList("UpdateMeshDiag", DIAG_UpdateMesh);
+	diagList.addToList("UnrefineDiag", DIAG_Unrefinement);
 	
-	#define REPRT(VAR, VAL) Pout<< VAL << " = " << VAR << endl
-	if (DIAG_ReportDiagnosticLevels)
+	if (diagList["ReportDiags"])
 	{
-		Pout<< endl << "******************************";
-		Pout<< "Diagnostic levels are recorded with values: " << endl;
-		
-		REPRT(DIAG_ReportDiagnosticLevels, "ReportDiags");
-		REPRT(DIAG_GenericDebug, "GenericDebug");
-		REPRT(DIAG_CalcRelevantDirs, "CalcRelevantDirsDiag");
-		REPRT(DIAG_GetAspectRatio, "AspectRatioDiag");
-		REPRT(DIAG_GetCellLength, "CellLengthDiag");
-		REPRT(DIAG_SetBoundaryCellInfo, "BoundaryCellInfoDiag");
-		REPRT(DIAG_SetInternalFaceInfo, "InternalFaceInfoDiag");
-		REPRT(DIAG_Switch, "SwitchDiag");
-		REPRT(DIAG_SplitSideFaces, "SplitSidesDiag");
-		REPRT(DIAG_SplitSideFaces_Extended, "SplitSidesDiag_Extended");
-		REPRT(DIAG_CreateInternalFaces, "CreateIntFacesDiag");
-		REPRT(DIAG_SetRefinement, "SetRefinementDiag");
-		REPRT(DIAG_SetRefinementTitles, "SetRefinementDiag_Titles");
-		REPRT(DIAG_SetRefinement_List, "SetRefinementDiag_Reasons");
-		REPRT(DIAG_SetRefinement_Part3, "SetRefinementDiag_Part3");
-		REPRT(DIAG_Unrefinement, "UnrefineDiag");
-		REPRT(DIAG_UpdateMesh, "UpdateMeshDiag");
-		
-		Pout<< "******************************" << endl;
+		diagList.reportBools();
 	}
-	#undef REPRT
+	
+	return diagList;
 }
 
 int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const bool Fatal)
@@ -3082,9 +3059,9 @@ Foam::hexRef4::hexRef4(const polyMesh& mesh, const bool readHistory)
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
     savedCellLevel_(0),
-    boolToggle_(readToggle())
+    boolToggle_(readToggle()),
+    diagList(myReadDiagDict())
 {
-	myReadDiagDict();
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
 		FatalErrorIn("Constructor for hexRef4()") 
@@ -3234,9 +3211,9 @@ Foam::hexRef4::hexRef4
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
     savedCellLevel_(0),
-    boolToggle_(readToggle())
+    boolToggle_(readToggle()),
+    diagList(myReadDiagDict())
 {
-	myReadDiagDict();
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
 		FatalErrorIn("Constructor for hexRef4()") 
@@ -3366,9 +3343,9 @@ Foam::hexRef4::hexRef4
     faceRemover_(mesh_, GREAT),     // merge boundary faces wherever possible
     savedPointLevel_(0),
     savedCellLevel_(0),
-    boolToggle_(readToggle())
+    boolToggle_(readToggle()),
+    diagList(myReadDiagDict())
 {
-	myReadDiagDict();
 	if ((getCellLength(0) * aspectX_to_Y_) != getCellLength(1))
 	{
 		FatalErrorIn("Constructor for hexRef4()") 
@@ -4623,11 +4600,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
     // ~~~~~~~~~~~~~~~~~~~~
     // (after splitting)
 
-    if (DIAG_SetRefinementTitles)
-    {
-        Pout<< "hexRef4::setRefinement :"
-            << " Allocating face midpoints."
-            << endl;
+    if (DIAG_SetRefinementTitles) {
+        Pout<< "hexRef4::setRefinement : Allocating face midpoints." << endl;
     }
 
     // Face anchor level. There are guaranteed 4 points with level
@@ -5023,6 +4997,16 @@ Foam::labelListList Foam::hexRef4::setRefinement
             << endl;
         Pout<< "------------------------------------------------------------" << endl;
     }
+    
+    if (!DIAG_SetRefinement && !DIAG_SetRefinement_List)
+    {
+		Pout<< "Both DIAG_SetRefinement and DIAG_SetRefinement_List "
+			<< "are set to false." << endl
+			<< "Set DIAG_SetRefinement to true for a list of cells "
+			<< "and their faces, " << endl << "or set DIAG_SetRefinement_List "
+			<< "to true for a detailed list of why each cell is going to be refined."
+			<< endl;
+	}
 
     // Get all affected faces.
     PackedBoolList affectedFace(mesh_.nFaces());
@@ -5033,7 +5017,7 @@ Foam::labelListList Foam::hexRef4::setRefinement
         {
             if (cellMidPoint[cellI] >= 0)
             {
-				if (DIAG_SetRefinement)
+				if (DIAG_SetRefinement && !DIAG_SetRefinement_List)
 				{
 					Pout<< nl << "cellI = " << cellI << endl;
 				}
@@ -5042,9 +5026,10 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 forAll(cFaces, i) // marks every face of cellI for refinement.
                 {
                     affectedFace.set(cFaces[i]);
-                    if (DIAG_SetRefinement)
-                    {
+                    if (DIAG_SetRefinement) {
 						Pout<< "cFaces[" << i << "] = " << cFaces[i] << endl;
+					}
+                    if (DIAG_SetRefinement_List) {
 						facesToRefineWithReason.append(Pair<label>(cFaces[i], 1));
 					}
                 }
@@ -5056,9 +5041,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
             if (faceMidPoint[faceI] >= 0)
             {
                 affectedFace.set(faceI);
-                if (DIAG_SetRefinement)
+                if (DIAG_SetRefinement_List)
                 {
-					//~ Pout<< "faceI = " << faceI << ", set for (4-split) refinement" << endl;
 					facesToRefineWithReason.append(Pair<label>(faceI, 3));
 				}
             }
@@ -5072,7 +5056,7 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 forAll(eFaces, i)
                 {
                     affectedFace.set(eFaces[i]);
-                    if (DIAG_SetRefinement)
+                    if (DIAG_SetRefinement_List)
                     {
 						facesToRefineWithReason.append(Pair<label>(eFaces[i], 9));
 					}
@@ -5086,7 +5070,6 @@ Foam::labelListList Foam::hexRef4::setRefinement
     {
 		sortFaces facesToRefine2(facesToRefineWithReason);
 		facesToRefine2.sort();
-		//~ if (extended_debug) facesToRefine2.printInfo();
 		
 		DynamicList<Pair<label> > condensedList = facesToRefine2.condense();
 		
