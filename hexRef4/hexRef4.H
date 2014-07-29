@@ -111,6 +111,26 @@ class hexRef4
         
         const bool boolToggle_;
         
+        // Private diagnostic bools
+        bool DIAG_ReportDiagnosticLevels;
+        bool DIAG_CalcRelevantDirs;
+        bool DIAG_GetCellLength;
+        bool DIAG_GetAspectRatio;
+        bool DIAG_SetBoundaryCellInfo;
+        bool DIAG_SetInternalFaceInfo;
+        bool DIAG_Switch;
+        bool DIAG_SplitSideFaces;
+        bool DIAG_SplitSideFaces_Extended;
+        bool DIAG_CreateInternalFaces;
+        bool DIAG_GenericDebug;
+        bool DIAG_SetRefinementTitles;
+        bool DIAG_SetRefinement;
+        bool DIAG_SetRefinement_List;
+        bool DIAG_SetRefinement_Part3;
+        bool DIAG_UpdateMesh;
+        bool DIAG_CellShapes;
+        bool DIAG_Unrefinement;
+        
     // Private Member Functions
 
 		Foam::vector calcSingleFaceNormal(const pointField&, const label&) const;
@@ -207,6 +227,9 @@ class hexRef4
 			const labelList& facesToCombine,
 			DynamicList<Pair<label> >& pairedFaces
 		);
+		
+		// Get the default diagnostic verbosity levels
+		void myReadDiagDict();
 		
 		Foam::label findEdge
 		(
@@ -452,8 +475,6 @@ public:
 
     //- Runtime type information
     ClassName("hexRef4");
-
-    static bool extended_debug;
 
     // Constructors
 
