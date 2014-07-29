@@ -279,15 +279,13 @@ void Foam::hexRef4::myReadDiagDict()
 	DIAG_GenericDebug = LUOD("GenericDebug");
 	DIAG_UpdateMesh = LUOD("UpdateMeshDiag");
 	DIAG_Unrefinement = LUOD("UnrefineDiag");
-	
 	#undef LUOD
 	
-	#define REPRT(VAR, VAL) Pout << VAL << " = " << VAR << endl
-	
+	#define REPRT(VAR, VAL) Pout<< VAL << " = " << VAR << endl
 	if (DIAG_ReportDiagnosticLevels)
 	{
-		Pout << endl << "******************************";
-		Pout << "Diagnostic levels are recorded with values: " << endl;
+		Pout<< endl << "******************************";
+		Pout<< "Diagnostic levels are recorded with values: " << endl;
 		
 		REPRT(DIAG_ReportDiagnosticLevels, "ReportDiags");
 		REPRT(DIAG_GenericDebug, "GenericDebug");
@@ -307,9 +305,8 @@ void Foam::hexRef4::myReadDiagDict()
 		REPRT(DIAG_Unrefinement, "UnrefineDiag");
 		REPRT(DIAG_UpdateMesh, "UpdateMeshDiag");
 		
-		Pout << "******************************" << endl;
+		Pout<< "******************************" << endl;
 	}
-	
 	#undef REPRT
 }
 
@@ -334,7 +331,7 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
 		if (relevDirs.size() == 2 && owner != -20 && neighbour != -20)
 		{
 			// Use cellLevel_ and cell0Length_ to set relevantDir.
-			if (DIAG_CalcRelevantDirs) 
+			if (DIAG_CalcRelevantDirs)
 			{
 				Pout<< "relevDirs.size == 2. relevDirs = " << relevDirs << endl;
 				Pout<< "own = " << owner << ", nei = " << neighbour << endl;
@@ -384,8 +381,8 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
 				<< "The number of non-zero(ish) directions != 1. (="
 				<< relevDirs.size() << ")"
 				<< nl
-				<< "mag(dir) = " << vector(mag(dir[0]), mag(dir[1]), mag(dir[2])) 
-				<< nl 
+				<< "mag(dir) = " << vector(mag(dir[0]), mag(dir[1]), mag(dir[2]))
+				<< nl
 				<< "dir = " << dir
 				<< abort(FatalError);
 		}
@@ -428,7 +425,10 @@ void Foam::hexRef4::setBoundaryCellInfo(const label& faceI, const labelList& par
 	vector faceNormal = calcSingleFaceNormal(mesh_.points(), faceI);
 	int relevantDir = calcRelevantDirs(faceNormal);
 
-	if (DIAG_SetBoundaryCellInfo) Pout << "setBoundaryCellInfo for a = " << a << ", case " << relevantDir << endl;
+	if (DIAG_SetBoundaryCellInfo) {
+		Pout<< "setBoundaryCellInfo for a = " << a << ", case "
+			<< relevantDir << endl;
+	}
 	
 	switch (relevantDir)
 	{
@@ -458,29 +458,7 @@ void Foam::hexRef4::setBoundaryCellInfo(const label& faceI, const labelList& par
 			<< abort(FatalError);
 		break;
 	}
-}
-
-//~ void Foam::hexRef4::setInternalFaceInfo
-//~ (
-	//~ const labelListList& cellAddedCells,
-	//~ const label& set,
-	//~ label& own,
-	//~ label& nei,
-	//~ const polyTopoChange& meshMod
-//~ )
-//~ {
-	//~ bool trivial = false;
-	//~ setInternalFaceInfo
-	//~ (
-		//~ cellAddedCells,
-		//~ set,
-		//~ own,
-		//~ nei,
-		//~ meshMod,
-		//~ trivial
-	//~ );
-//~ }
-	
+}	
 
 void Foam::hexRef4::setInternalFaceInfo
 (
@@ -513,9 +491,9 @@ void Foam::hexRef4::setInternalFaceInfo
 		ownInd = history_.myParentCell(own);
 		if (DIAG_SetInternalFaceInfo)
 		{
-			Pout<< "own = " << own 
+			Pout<< "own = " << own
 				<< ", value is larger than size of cellAddedCells "
-				<< "- i.e. the owner is a new cell. Setting owner to " 
+				<< "- i.e. the owner is a new cell. Setting owner to "
 				<< ownInd << endl;
 		}
 	}
@@ -524,7 +502,7 @@ void Foam::hexRef4::setInternalFaceInfo
 		neiInd = history_.myParentCell(nei);
 		if (DIAG_SetInternalFaceInfo)
 		{
-			Pout<< "nei = " << nei 
+			Pout<< "nei = " << nei
 				<< ", value is larger than size of cellAddedCells "
 				<< "- i.e. the neighbour is a new cell. Setting neighbour to " 
 				<< neiInd << endl;
@@ -536,7 +514,9 @@ void Foam::hexRef4::setInternalFaceInfo
 	vector dir(ptNei - ptOwn);
 	int relevantDir = calcRelevantDirs(dir, ownInd, neiInd);
 
-	if (DIAG_SetInternalFaceInfo) Pout<< "A-" << set << ": Case " << relevantDir << endl;
+	if (DIAG_SetInternalFaceInfo) {
+		Pout<< "A-" << set << ": Case " << relevantDir << endl;
+	}
 	
 	
 	if (cellAddedCells[ownInd].size())
@@ -548,11 +528,14 @@ void Foam::hexRef4::setInternalFaceInfo
 		refNei = true;
 	}
 	
-	if (DIAG_SetInternalFaceInfo) Pout<< "refOwn = " << refOwn << ", refNei = " << refNei << endl;
+	if (DIAG_SetInternalFaceInfo) {
+		Pout<< "refOwn = " << refOwn << ", refNei = " << refNei << endl;
+	}
 	
 	if (refOwn == false && refNei == false)
 	{
-		if (1) Pout<< "setInternalFaceInfo changed nothing. Returning with own = " << own << " , nei = " << nei << endl;
+		Pout<< "setInternalFaceInfo changed nothing. Returning with own = " 
+			<< own << " , nei = " << nei << endl;
 		return;
 	}
 	
@@ -760,10 +743,13 @@ void Foam::hexRef4::myGetFaceVertsLists
 	centre1 /= 4;
 	
 	vector dir(centre1 - centre0);
-	// Warning: arbitrary value for comparison here - and it screws the mesh if set too small.
+	// Warning: arbitrary value for comparison here
+	// it screws the mesh if set too small.
 	if (dir[0] < -1E-10 || dir[1] < -1E-10 || dir[2] < -1E-10)
 	{
-		if (DIAG_Switch) Pout<< "Switching vectors newFaceVertsA - original dir = " << dir << endl;
+		if (DIAG_Switch) {
+			Pout<< "Switching vectors newFaceVertsA - original dir = " << dir << endl;
+		}
 		DynamicList<label> tempVerts = newFaceVertsA[0];
 		newFaceVertsA[0] = newFaceVertsA[1];
 		newFaceVertsA[1] = tempVerts;
@@ -786,7 +772,9 @@ void Foam::hexRef4::mySwitchFaceVerts
 			<< "faceVerts = " << faceVerts
 			<< abort(FatalError);
 	}
-	if (DIAG_Switch) Pout<< reason << endl;
+	if (DIAG_Switch) {
+		Pout<< reason << endl;
+	}
 	label temp = faceVerts[0];
 	faceVerts[0] = faceVerts[2];
 	faceVerts[2] = temp;
@@ -820,21 +808,30 @@ void Foam::hexRef4::mySplitSideFaces
 	// then add one face and mod the other.
 	{
 		nei = -1;
-		if (DIAG_SplitSideFaces) Pout<< "Boundary cell - Initial own/nei are " << oldOwn << ", " << oldNei << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Boundary cell - Initial own/nei are " << oldOwn
+				<< ", " << oldNei << endl;
+		}
 		
-		//~ const labelList& pACells = (oldOwn >= cellAddedCells.size())? cellAddedCells[history_.myParentCell(oldOwn)] : cellAddedCells[oldOwn];
-		const labelList& pACells = (cellLevel_[oldOwn] > 0) ? cellAddedCells[history_.myParentCell(oldOwn)] : cellAddedCells[oldOwn];
+		const labelList& pACells = (cellLevel_[oldOwn] > 0) ? \
+			cellAddedCells[history_.myParentCell(oldOwn)] : cellAddedCells[oldOwn];
 
 		setBoundaryCellInfo(faceI, pACells, own, 1);
 		face newFace;
 		newFace.transfer(newFaceVertsA[1]);
-		if (DIAG_SplitSideFaces) Pout<< "Adding boundary face (a=1) with final own/nei = " << own << ", " << nei << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Adding boundary face (a=1) with final own/nei = " << own
+				<< ", " << nei << endl;
+		}
 		addFace(meshMod, faceI, newFace, own, nei);
 		
 		setBoundaryCellInfo(faceI, pACells, own, 0);
 		face sameFace;
 		sameFace.transfer(newFaceVertsA[0]);
-		if (DIAG_SplitSideFaces) Pout<< "Modding boundary face (a=0) with final own/nei = " << own << ", " << nei << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Modding boundary face (a=0) with final own/nei = " << own
+				<< ", " << nei << endl;
+		}
 		modFace(meshMod, faceI, sameFace, own, nei);
 	}
 	else // internal cell
@@ -858,7 +855,10 @@ void Foam::hexRef4::mySplitSideFaces
 			own = nei;
 			nei = temp;
 			newFace = newFace.reverseFace();
-			if (DIAG_SplitSideFaces) Pout<< "Flipping face and own/nei in mySplitSideFaces for A1 face." << endl;
+			if (DIAG_SplitSideFaces) {
+				Pout<< "Flipping face and own/nei in mySplitSideFaces " 
+					<< "for A1 face." << endl;
+			}
 		}
 		
 		label ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
@@ -873,7 +873,9 @@ void Foam::hexRef4::mySplitSideFaces
 			mesh_.cellCentres()[neiInd],
 			newFace
 		);
-		if (DIAG_SplitSideFaces) Pout<< "Checked internal orientation" << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Checked internal orientation" << endl;
+		}
 		
 		if (DIAG_SplitSideFaces_Extended)
 		{
@@ -887,7 +889,10 @@ void Foam::hexRef4::mySplitSideFaces
 			}
 		}
 		
-		if (DIAG_SplitSideFaces) Pout<< "Adding face (a=1) with final own/nei = " << own << ", " << nei << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Adding face (a=1) with final own/nei = " << own 
+				<< ", " << nei << endl;
+		}
 		addFace(meshMod, faceI, newFace, own, nei);
 		
 		// A0
@@ -905,7 +910,10 @@ void Foam::hexRef4::mySplitSideFaces
 			own = nei;
 			nei = temp;
 			sameFace = sameFace.reverseFace();
-			if (DIAG_SplitSideFaces) Pout<< "Flipping face and own/nei in mySplitSideFaces for A0 face." << endl;
+			if (DIAG_SplitSideFaces) {
+				Pout<< "Flipping face and own/nei in mySplitSideFaces " 
+					<< "for A0 face." << endl;
+			}
 		}
 	
 		ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
@@ -919,7 +927,9 @@ void Foam::hexRef4::mySplitSideFaces
 			mesh_.cellCentres()[neiInd],
 			sameFace
 		);
-		if (DIAG_SplitSideFaces) Pout<< "Checked internal orientation" << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Checked internal orientation" << endl;
+		}
 		
 		if (DIAG_SplitSideFaces_Extended)
 		{
@@ -934,7 +944,10 @@ void Foam::hexRef4::mySplitSideFaces
 			}
 		}
 		
-		if (DIAG_SplitSideFaces) Pout<< "Modding face (a=0) with final own/nei = " << own << ", " << nei << endl;
+		if (DIAG_SplitSideFaces) {
+			Pout<< "Modding face (a=0) with final own/nei = " << own 
+				<< ", " << nei << endl;
+		}
 		modFace(meshMod, faceI, sameFace, own, nei);
 	}
 }
@@ -953,7 +966,9 @@ void Foam::hexRef4::myCreateInternalFaces
 	label nFacesAdded = 0;
 	DynamicList<label> storage;
 	
-	if (DIAG_CreateInternalFaces) Pout<< nl << "cellI = " << cellI << endl;
+	if (DIAG_CreateInternalFaces) {
+		Pout<< nl << "cellI = " << cellI << endl;
+	}
 	
 	const cell& cFaces = mesh_.cells()[cellI];
 
@@ -992,7 +1007,9 @@ void Foam::hexRef4::myCreateInternalFaces
 			faceNormalI /= mag(faceNormalI);
 			faceNormalList.append(faceNormalI);
 		}
-		if (DIAG_CreateInternalFaces) Pout<< faceNormalList << endl;
+		if (DIAG_CreateInternalFaces) {
+			Pout<< faceNormalList << endl;
+		}
 	}
 	
 	
@@ -1055,7 +1072,9 @@ void Foam::hexRef4::myCreateInternalFaces
 			if (eP != -1)
 			{
 				edgeMidPoint1 = edgeMidPoint[fEdges[eP]];
-				if (DIAG_CreateInternalFaces) Pout<< "edgeMidPoint1 = " << edgeMidPoint1 << endl;
+				if (DIAG_CreateInternalFaces) {
+					Pout<< "edgeMidPoint1 = " << edgeMidPoint1 << endl;
+				}
 				break;
 			}
 		}
@@ -1066,7 +1085,9 @@ void Foam::hexRef4::myCreateInternalFaces
 			if (eP != -1)
 			{
 				edgeMidPoint2 = edgeMidPoint[fEdges[eP]];
-				if (DIAG_CreateInternalFaces) Pout<< "edgeMidPoint2 = " << edgeMidPoint2 << endl;
+				if (DIAG_CreateInternalFaces) {
+					Pout<< "edgeMidPoint2 = " << edgeMidPoint2 << endl;
+				}
 				break;
 			}
 		}
@@ -1106,9 +1127,9 @@ void Foam::hexRef4::myCreateInternalFaces
 	
 	myCombineFaces(facesToCombine, pairedFaces);
 	
-	if (DIAG_CreateInternalFaces)
-	{
-		Pout<< "Adding faces between paired faces: pairedFaces = " << pairedFaces << endl;
+	if (DIAG_CreateInternalFaces) {
+		Pout<< "Adding faces between paired faces: pairedFaces = " 
+			<< pairedFaces << endl;
 	}
 
 	forAll(pairedFaces, i)
@@ -1152,25 +1173,34 @@ void Foam::hexRef4::myCreateInternalFaces
 		{
 			label point = mesh_.faces()[faceI][pt];
 			newCentre += mesh_.points()[point];
-			if (DIAG_CreateInternalFaces) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
+			if (DIAG_CreateInternalFaces) {
+				Pout<< "Added point to newCentre for pairedFaces section: " 
+					<< mesh_.points()[point] << endl;
+			}
 		}
 		faceI = pairedFaces[i].second();
 		forAll(mesh_.faces()[faceI], pt)
 		{
 			label point = mesh_.faces()[faceI][pt];
 			newCentre += mesh_.points()[point];
-			if (DIAG_CreateInternalFaces) Pout<< "Added point to newCentre for pairedFaces section: " << mesh_.points()[point] << endl;
+			if (DIAG_CreateInternalFaces) {
+				Pout<< "Added point to newCentre for pairedFaces section: " 
+					<< mesh_.points()[point] << endl;
+			}
 		}
 		newCentre /= 8;
 		
-		if (DIAG_CreateInternalFaces)
-		{
+		if (DIAG_CreateInternalFaces) {
 			Pout<< "newFaceVerts = " << newFaceVerts
 				<< " and newCentre = " << newCentre << endl;
 		}
+		
 		vector directionToFaceFromCentre(newCentre - mesh_.cellCentres()[cellI]);
 		label relevantDir = calcRelevantDirs(directionToFaceFromCentre);
-		if (DIAG_CreateInternalFaces) Pout<< "directionToFaceFromCentre = " << directionToFaceFromCentre << ", relevantDir = " << relevantDir << endl;
+		if (DIAG_CreateInternalFaces) {
+			Pout<< "directionToFaceFromCentre = " << directionToFaceFromCentre 
+				<< ", relevantDir = " << relevantDir << endl;
+		}
 		
 		if (relevantDir == -2)
 		{
@@ -1237,7 +1267,10 @@ void Foam::hexRef4::myCombineFaces
 			// Check the face isn't already included as the second part of an earlier pair
 			if (facesToCombine[i] == pairedFaces[k].second())
 			{
-				if (DIAG_CreateInternalFaces) Pout<< "facesToCombine[i] == pairedFaces[k].second() : " << facesToCombine[i] << endl;
+				if (DIAG_CreateInternalFaces) {
+					Pout<< "facesToCombine[i] == pairedFaces[k].second() : "
+						<< facesToCombine[i] << endl;
+				}
 				break;
 			}
 		}
@@ -1611,7 +1644,6 @@ Foam::label Foam::hexRef4::addInternalFace
         //);
     }
 }
-
 
 // Modifies existing faceI for either new owner/neighbour or new face points.
 void Foam::hexRef4::modFace
@@ -2465,7 +2497,7 @@ Foam::label Foam::hexRef4::storeMidPointInfo
             neiPt = mesh_.points()[anchorPointI];
         }
 
-        if (debug)
+        if (DIAG_GenericDebug)
         {
             point ownPt, neiPt;
 
@@ -2489,7 +2521,9 @@ Foam::label Foam::hexRef4::storeMidPointInfo
                 neiPt,
                 newFace
             );
-            if (debug) Pout<< "Checked internal orientation" << endl;
+            if (DIAG_GenericDebug) {
+				Pout<< "Checked internal orientation" << endl;
+			}
         }
 
         return addInternalFace
@@ -3114,7 +3148,9 @@ Foam::hexRef4::hexRef4(const polyMesh& mesh, const bool readHistory)
         checkMesh();
     }
     
-    if (DIAG_GetCellLength) Pout<< "Info about lengths = " << cell0Lengths_ << endl;
+    if (DIAG_GetCellLength) {
+		Pout<< "Info about lengths = " << cell0Lengths_ << endl;
+	}
 }
 
 
@@ -4414,8 +4450,7 @@ Foam::labelListList Foam::hexRef4::setRefinement
         newPointLevel.append(pointLevel_[pointI]);
     }
     
-    if (DIAG_SetRefinementTitles)
-    {
+    if (DIAG_SetRefinementTitles) {
         Pout<< "hexRef4::setRefinement :"
             << " Allocating " << cellsToRefine.size() << " cell midpoints."
             << endl;
@@ -4454,11 +4489,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
     // Split edges
     // ~~~~~~~~~~~
     
-    if (DIAG_SetRefinementTitles)
-    {
-        Pout<< "hexRef4::setRefinement :"
-            << " Allocating edge midpoints."
-            << endl;
+    if (DIAG_SetRefinementTitles) {
+        Pout<< "hexRef4::setRefinement : Allocating edge midpoints." << endl;
     }
 
     // Unrefined edges are ones between cellLevel or lower points.
@@ -4527,10 +4559,9 @@ Foam::labelListList Foam::hexRef4::setRefinement
             {
                 // Edge marked to be split.
                 edgeMids[edgeI] = mesh_.edges()[edgeI].centre(mesh_.points());
-                if (DIAG_SetRefinement)
-                {
+                if (DIAG_SetRefinement) {
 					Pout<< "edgeI = " << edgeI << " was split in the middle, at "
-					<< edgeMids[edgeI] << endl;
+						<< edgeMids[edgeI] << endl;
 				}
             }
         }
