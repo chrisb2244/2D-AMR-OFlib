@@ -54,12 +54,35 @@ License
 #include "plane.H"
 #include "SubField.H"
 
+
+#ifdef NOT_OF_230
+	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging(const bool c)
+	{
+		return Foam::polyMesh::changing(c);
+	}
+	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging()
+	{
+		return Foam::polyMesh::changing();
+	}
+#else
+	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging(const bool c)
+	{
+		return Foam::polyMesh::topoChanging(c);
+	}
+	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging()
+	{
+		return Foam::polyMesh::topoChanging();
+	}
+#endif
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
     defineTypeNameAndDebug(dynamicRefineFvMeshHexRef4, 0);
     addToRunTimeSelectionTable(dynamicFvMesh, dynamicRefineFvMeshHexRef4, IOobject);
+    
+    
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //

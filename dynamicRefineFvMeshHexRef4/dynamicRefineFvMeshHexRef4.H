@@ -208,6 +208,10 @@ public:
         //- Update the mesh for both mesh motion and topology change
         virtual bool update();
         virtual bool updateAtZero();
+        
+        //- Support older OF versions than 2.3.0
+        bool topoChanging(const bool);
+        bool topoChanging();
 
 
     // Writing
