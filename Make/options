@@ -1,8 +1,15 @@
 DEBUG_OPT = -g
 NO_DEBUG_OPT = 
 
+ifneq ($(WM_PROJECT_VERSION),2.3.0)
+	MACRO_DEFINED=-DNOT_OF_230
+else
+	MACRO_DEFINED=
+endif
+
 EXE_INC = \
 	$(DEBUG_OPT) \
+	$(MACRO_DEFINED) \
 	-I$(LIB_SRC)/dynamicFvMesh/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
