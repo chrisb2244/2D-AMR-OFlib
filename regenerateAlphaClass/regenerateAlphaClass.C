@@ -27,6 +27,8 @@ License
 #include "regenerateAlphaClass.H"	// Header file for class
 #include <vector>					// Needed for vector of functors
 #include "fvCFD.H"					// Completes types for patchFields
+#include "VersionCompat_RegenAlpha.H"          // Defines macro substitution values for 
+                                    // OF versions < 2.3.0
 
 namespace Foam
 {
@@ -126,13 +128,7 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
     (
         IOobject
         (
-            #ifndef NOT_OF_230
-            // This is OF_2.3.0
-			"alpha.water.boundaryFields",
-            #else
-            // This is all other (read, earlier) versions of OF
-            "alpha1.boundaryFields",
-            #endif
+            BOUNDARY_FIELDS_NAME,
             mesh_.time().timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -154,13 +150,7 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
 	(
 		IOobject
 		(
-            #ifndef NOT_OF_230
-            // This is OF_2.3.0
-			"alpha.water",
-            #else
-            // This is all other (read, earlier) versions of OF
-            "alpha1",
-            #endif
+            FIELD_NAME,
 			mesh_.time().timeName(),
 			mesh_,
 			IOobject::NO_READ,
@@ -170,13 +160,7 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
 		mesh_,
 		dimensionedScalar
 		(
-			#ifndef NOT_OF_230
-            // This is OF_2.3.0
-			"alpha.water",
-            #else
-            // This is all other (read, earlier) versions of OF
-            "alpha1",
-            #endif
+			FIELD_NAME,
 			dimensionSet(0, 0, 0, 0, 0, 0, 0),
 			0.0
 		),

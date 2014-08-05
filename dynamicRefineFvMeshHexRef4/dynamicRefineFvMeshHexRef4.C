@@ -55,25 +55,8 @@ License
 #include "SubField.H"
 
 
-#ifdef NOT_OF_230
-	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging(const bool c)
-	{
-		return Foam::polyMesh::changing(c);
-	}
-	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging()
-	{
-		return Foam::polyMesh::changing();
-	}
-#else
-	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging(const bool c)
-	{
-		return Foam::polyMesh::topoChanging(c);
-	}
-	bool Foam::dynamicRefineFvMeshHexRef4::topoChanging()
-	{
-		return Foam::polyMesh::topoChanging();
-	}
-#endif
+#include "VersionCompat_DynRef.H" 	// Macro defines for version compatibility with older than 2.3.0 OpenFOAM versions.
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -1586,6 +1569,7 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
 
     if (refineInterval == 0)
     {
+		//~ MACRO_CHANGING(hasChanged);
         topoChanging(hasChanged); // was changing(hasChanged);
 
         return false;
@@ -1757,6 +1741,7 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
         nRefinementIterations_++;
     }
 
+	//~ MACRO_CHANGING(hasChanged);
     topoChanging(hasChanged); // was changing(hasChanged);
 
     return hasChanged;
@@ -1790,6 +1775,7 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
 
     if (refineInterval == 0)
     {
+		//~ MACRO_CHANGING(hasChanged);
         topoChanging(hasChanged); // was changing(hasChanged);
 
         return false;
@@ -1957,6 +1943,8 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
         }
         nRefinementIterations_++;
     }
+    
+    //~ MACRO_CHANGING(hasChanged);
 
     topoChanging(hasChanged); // was changing(hasChanged);
 
