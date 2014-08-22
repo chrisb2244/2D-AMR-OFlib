@@ -949,7 +949,6 @@ void Foam::hexRef4::myCreateInternalFaces
     
     const cell& cFaces = mesh_.cells()[cellI];
 
-    label facesProcessed = 0;
     DynamicList<label> cF(2);
     DynamicList<label> ncF(4);
     forAll(cFaces, i)
@@ -961,21 +960,18 @@ void Foam::hexRef4::myCreateInternalFaces
         if (mag(faceNormal & normalDir) > 0.5)
         {
             cF.append(faceI);
-            facesProcessed++;
         }
         else
         {
             ncF.append(faceI);
-            facesProcessed++;
         }
     }
-    if (facesProcessed > 6) // Useless variable? cFaces.size() might do this, and the rest. Not sure which would be faster.
-    {
-        if (DIAG_CreateInternalFaces)
-        {
-            Pout<< "Warning: More than 6 faces processed. Check for errors due to this!" << endl;
-            Pout<< "cellI = " << cellI << ", faces of cellI = " << cFaces << " and faceNormals are ";
-        }
+    if (cFaces.size() > 6 && DIAG_CreateInternalFaces)
+	{
+        Pout<< "Warning: More than 6 faces processed. "
+            << "Check for errors due to this!" << endl;
+        Pout<< "cellI = " << cellI << ", faces of cellI = " << cFaces 
+            << " and faceNormals are ";
         DynamicList<vector> faceNormalList;
         forAll (cFaces, i)
         {
@@ -984,9 +980,7 @@ void Foam::hexRef4::myCreateInternalFaces
             faceNormalI /= mag(faceNormalI);
             faceNormalList.append(faceNormalI);
         }
-        if (DIAG_CreateInternalFaces) {
-            Pout<< faceNormalList << endl;
-        }
+        Pout<< faceNormalList << endl;
     }
     
     
@@ -1008,8 +1002,8 @@ void Foam::hexRef4::myCreateInternalFaces
     
     if (DIAG_CreateInternalFaces)
     {
-        Pout<< "edgesOnFace1 = " << edgesOnFace1 << endl;
-        Pout<< "edgesOnFace2 = " << edgesOnFace2 << endl;
+        Pout<< "edgesOnFace1 = " << edgesOnFace1 << nl
+            << "edgesOnFace2 = " << edgesOnFace2 << endl;
     }
     
     DynamicList<label> newFaceVerts(4);
@@ -1018,23 +1012,18 @@ void Foam::hexRef4::myCreateInternalFaces
     forAll(ncF, i)
     {
         label faceI = ncF[i];
-        vector directionToFaceFromCentre(mesh_.faceCentres()[faceI] - mesh_.cellCentres()[cellI]);
+        vector directionToFaceFromCentre(
+            mesh_.faceCentres()[faceI] - mesh_.cellCentres()[cellI]
+            );
         // The false here causes a return 100, instead of FatalError, if the relevantDir cannot be found
         label relevantDir = calcRelevantDirs(directionToFaceFromCentre, false);
         if (relevantDir == 100)
         {
             // face is offset
             facesToCombine.append(faceI);
-            if (DIAG_CreateInternalFaces && (facesProcessed - (facesToCombine.size()/2) == 6))
-            {
-                Pout<< "Added faceI = " << faceI << " to a list of faces to combine. ";
-                Pout<< "List: " << facesToCombine;
-                Pout<< ". facesProcessed earlier = " << facesProcessed << endl;
-            }
             continue;
         }
             
-        label eP = -1;
         const labelList& fEdges = mesh_.faceEdges(faceI, storage);
         
         if (DIAG_CreateInternalFaces)
@@ -1045,6 +1034,7 @@ void Foam::hexRef4::myCreateInternalFaces
         
         forAll(edgesOnFace1, eI)
         {
+            label eP = -1;
             eP = findEdge(fEdges, edgesOnFace1[eI]);
             if (eP != -1)
             {
@@ -1058,6 +1048,7 @@ void Foam::hexRef4::myCreateInternalFaces
 
         forAll(edgesOnFace2, eI)
         {
+            label eP = -1;
             eP = findEdge(fEdges, edgesOnFace2[eI]);
             if (eP != -1)
             {
@@ -1090,8 +1081,10 @@ void Foam::hexRef4::myCreateInternalFaces
     if (facesToCombine.size()%2 != 0)
     {
         FatalErrorIn("myCreateInternalFaces(..)")
-            << "The list of faces to combine does not contain an even number of faces. "
-            << "List: " << facesToCombine << abort(FatalError);
+            << "The list of faces to combine does not contain "
+            << "an even number of faces. " << nl
+            << "List: " << facesToCombine 
+            << abort(FatalError);
     }
     label numPairedFaces = facesToCombine.size() / 2;
     
@@ -1141,6 +1134,7 @@ void Foam::hexRef4::myCreateInternalFaces
         newFaceVerts.append(faceMidPoint1);
 
         point newCentre(0,0,0);
+        label pointsCounted = 0;
         
         // Get the centre of the combined face, so that the direction to the face
         // can be calculated. sharedPoints[0,1] don't have values in mesh_.points()
@@ -1150,6 +1144,7 @@ void Foam::hexRef4::myCreateInternalFaces
         {
             label point = mesh_.faces()[faceI][pt];
             newCentre += mesh_.points()[point];
+            pointsCounted++;
             if (DIAG_CreateInternalFaces) {
                 Pout<< "Added point to newCentre for pairedFaces section: " 
                     << mesh_.points()[point] << endl;
@@ -1160,12 +1155,19 @@ void Foam::hexRef4::myCreateInternalFaces
         {
             label point = mesh_.faces()[faceI][pt];
             newCentre += mesh_.points()[point];
+            pointsCounted++;
             if (DIAG_CreateInternalFaces) {
                 Pout<< "Added point to newCentre for pairedFaces section: " 
                     << mesh_.points()[point] << endl;
             }
         }
-        newCentre /= 8;
+        newCentre /= pointsCounted;
+        if (pointsCounted != 8)
+        {
+            Pout<< "WARNING/ERROR - previously had wrong number of points"
+                << "There are actually " << pointsCounted
+                << " points for cell " << cellI << endl;
+        }
         
         if (DIAG_CreateInternalFaces) {
             Pout<< "newFaceVerts = " << newFaceVerts
@@ -1179,7 +1181,7 @@ void Foam::hexRef4::myCreateInternalFaces
                 << ", relevantDir = " << relevantDir << endl;
         }
         
-        if (relevantDir == -2)
+        if (relevantDir == -2) // Special case. Should this be here?
         {
             label neiCellIndex = mesh_.faceNeighbour()[pairedFaces[i].first()];
             label ownCellIndex = mesh_.faceOwner()[pairedFaces[i].first()];
@@ -1191,9 +1193,11 @@ void Foam::hexRef4::myCreateInternalFaces
                 newFaceVerts[1] = temp;
                 if (DIAG_CreateInternalFaces) 
                 {
-                    Pout<< "Triggered the pair of if statements in pairedFaces for -2 dir." << endl;
-                    Pout<< "Switching newFaceVerts [0] and [1]. newFaceVerts (after) = ";
-                    Pout<< newFaceVerts << endl;
+                    Pout<< "Triggered the pair of if statements in pairedFaces "
+                        << "for -2 dir." << endl;
+                    Pout<< "Switching newFaceVerts [0] and [1]. "
+                        << "newFaceVerts (after) = "
+                        << newFaceVerts << endl;
                 }
             }
         }
@@ -1228,68 +1232,93 @@ void Foam::hexRef4::myCombineFaces
     DynamicList<Pair<label> >& pairedFaces
 )
 {
-    if (facesToCombine.size()%2 != 0)
-    {
-        FatalErrorIn("myCreateInternalFaces(..)")
-            << "The list of faces to combine does not contain an even number of faces. "
-            << "List: " << facesToCombine << abort(FatalError);
-    }
-    label numPairedFaces = facesToCombine.size() / 2;
+    labelList copiedList = facesToCombine;
+    labelList addedList;
+
+	const label targetFaces = facesToCombine.size();
+    int counted = 0;
     
     forAll(facesToCombine, i)
-    {
-        label refDir = calcRelevantDirs(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
-        forAll(pairedFaces, k)
+	{
+        
+		label refDir = calcRelevantDirs(
+            calcSingleFaceNormal(mesh_.points(), facesToCombine[i])
+            );
+        forAll(addedList, k)
         {
-            // Check the face isn't already included as the second part of an earlier pair
-            if (facesToCombine[i] == pairedFaces[k].second())
-            {
-                if (DIAG_CreateInternalFaces) {
-                    Pout<< "facesToCombine[i] == pairedFaces[k].second() : "
-                        << facesToCombine[i] << endl;
-                }
-                break;
+            if (addedList[k] == facesToCombine[i]) {
+                goto faceCheckLoopEnd;
             }
         }
-        for(int j = i+1; j<facesToCombine.size(); j++)
-        {
-            scalar SMALLVEC = 1E-5; // set this as a fraction of the max refinement cell length?
-            if
-            (
-                // If the faces have the same faceNormal
-                calcRelevantDirs(calcSingleFaceNormal(mesh_.points(), facesToCombine[j])) == refDir
-             && // If the faces have either the same x, or same y coordinate (ie they are on a plane)
-                // There isn't a test here that the normal is also the normal to the plane, but I think it is ok?
-                (
-                    (mesh_.faceCentres()[facesToCombine[i]][0] - mesh_.faceCentres()[facesToCombine[j]][0]) < SMALLVEC
-                 || (mesh_.faceCentres()[facesToCombine[i]][1] - mesh_.faceCentres()[facesToCombine[j]][1]) < SMALLVEC
-                )
-            )
-            {
-                pairedFaces.append(Pair<label>(facesToCombine[i], facesToCombine[j]));
-            }
+
+		for(int j = i+1; j<facesToCombine.size(); j++)
+		{
+			scalar SMALLVEC = 1E-10; 
+            // TODO
+            // set this as a fraction of the max refinement cell length?
+            
+            const point& faceCentreI = mesh_.faceCentres()[facesToCombine[i]];
+            const point& faceCentreJ = mesh_.faceCentres()[facesToCombine[j]];
+            
+			if
+			(
+				// If the faces have the same faceNormal
+				calcRelevantDirs(
+                    calcSingleFaceNormal(mesh_.points(), facesToCombine[j])
+                    ) == refDir
+			 	// If the faces have either the same x, or same y coordinate 
+                // (ie they are on a plane)
+				// There isn't a test here that the normal is also the 
+                // normal to the refinement plane, but I think it is ok?
+             && (
+					(mag(faceCentreI.x() - faceCentreJ.x()) < SMALLVEC)
+				 || (mag(faceCentreI.y() - faceCentreJ.y()) < SMALLVEC)
+				)
+			)
+			{
+				pairedFaces.append(
+                    Pair<label>(facesToCombine[i], facesToCombine[j])
+                );
+                addedList.append(facesToCombine[i]);
+                addedList.append(facesToCombine[j]);
+                counted = counted + 2;
+                goto faceCheckLoopEnd;
+			}
+		}
+        // New section
+        if (DIAG_CreateInternalFaces) {
+            Pout<< "Warning - pairedFaces couldn't find a match. " << endl;
         }
-    }
+        pairedFaces.append(Pair<label>(-1, facesToCombine[i]));
+        counted++;
+        
+        faceCheckLoopEnd:
+        {}
+	}
+	
+	if (counted != targetFaces)
+	{
+		List<vector> listOfNormals;
+		List<vector> listOfFaceCentres;
+		forAll (facesToCombine, i)
+		{
+			listOfNormals.append(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
+			listOfFaceCentres.append(mesh_.faceCentres()[facesToCombine[i]]);
+		}
+		FatalErrorIn("myCreateInternalFaces()")
+			<< "The number of faces counted as added was not the same as the "
+            << "number of faces passed to myCreateInternalFaces(..)" << nl
+			<< "targetFaces = " << targetFaces << nl
+            << "counted = " << counted << nl
+			<< "pairedFaces = " << pairedFaces << nl
+			<< "facesToCombine = " << facesToCombine << nl
+			<< "List of normals = " << listOfNormals << nl
+			<< "List of faceCentres = " << listOfFaceCentres << nl
+			<< abort(FatalError);
+	}
     
-    if (pairedFaces.size() != numPairedFaces)
-    {
-        List<vector> listOfNormals;
-        List<vector> listOfFaceCentres;
-        forAll (facesToCombine, i)
-        {
-            listOfNormals.append(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
-            listOfFaceCentres.append(mesh_.faceCentres()[facesToCombine[i]]);
-        }
-        FatalErrorIn("myCreateInternalFaces()")
-            << "The list of paired faces does not have the same number of entries " 
-            << "as the value of numPairedFaces. "
-            << nl
-            << "numPairedFaces = " << numPairedFaces << nl
-            << "pairedFaces = " << pairedFaces << nl
-            << "facesToCombine = " << facesToCombine << nl
-            << "List of normals = " << listOfNormals << nl
-            << "List of faceCentres = " << listOfFaceCentres << nl
-            << abort(FatalError);
+    if (DIAG_CreateInternalFaces) {
+        Pout<< "Final pairedFaces = " << pairedFaces << endl;
     }
 }
 
@@ -5474,10 +5503,10 @@ Foam::labelListList Foam::hexRef4::setRefinement
     
     // 3. faces that do not get split but whose owner/neighbour change
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // This section is called seemingly when faces are already split, and are 
-    // (going to be) grouped as pairedFaces in myCreateInternalFaces.
-    // Needs to be written to reflect that.
-    if (1){
+    // This section is called seemingly when faces are already split.
+    // 2:1 refinement rules may be a (the?) common cause. 
+    // Faces picked up here seem to often be grouped as pairedFaces in 
+    // myCreateInternalFaces.
     if (DIAG_SetRefinementTitles)
     {
         Pout<< nl << nl;
@@ -5498,10 +5527,19 @@ Foam::labelListList Foam::hexRef4::setRefinement
     }
     DynamicList<Pair<label> > pairedFaces;
     myCombineFaces(remainingFaces, pairedFaces);
+    
+    // Check the order of pairedFaces
     forAll(pairedFaces, i)
     {
         label& pf1 = pairedFaces[i].first();
         label& pf2 = pairedFaces[i].second();
+        if (pf1 == -1)
+        {
+            // Don't switch the point order.
+            // A paired value of -1 indicates that the face was not
+            // part of a pair.
+            continue;
+        }
         if (pf1 >= mesh_.faceCentres().size() || pf2 >= mesh_.faceCentres().size())
         {
             FatalErrorIn("setRefinement(..)")
@@ -5616,20 +5654,27 @@ Foam::labelListList Foam::hexRef4::setRefinement
             }
             modFace(meshMod, faceI, faceRef, own, nei);
             
-            point ownPt = own < cellAddedCells.size() ? mesh_.cellCentres()[own] : mesh_.cellCentres()[history_.myParentCell(own)];
-            point neiPt = nei < cellAddedCells.size() ? mesh_.cellCentres()[nei] : mesh_.cellCentres()[history_.myParentCell(nei)];
+            point ownPt = own < cellAddedCells.size() ? 
+                mesh_.cellCentres()[own] :
+                mesh_.cellCentres()[history_.myParentCell(own)];
+            point neiPt = nei < cellAddedCells.size() ? 
+                mesh_.cellCentres()[nei] : 
+                mesh_.cellCentres()[history_.myParentCell(nei)];
             checkInternalOrientation(meshMod, own, faceI, ownPt, neiPt, faceRef);
-            if (DIAG_SetRefinement_Part3 || DIAG_GenericDebug) Pout<< "Checked internal orientation" << endl;
+            if (DIAG_SetRefinement_Part3 || DIAG_GenericDebug) {
+                Pout<< "Checked internal orientation" << endl;
+            }
 
             // Mark face as having been handled
             if (DIAG_SetRefinement_Part3)
             {
-                Pout<< "faceI = " << faceI << " was handled by part 3 of the face splitting section" << endl;
+                Pout<< "faceI = " << faceI << " was handled by part 3 "
+                    << "of the face splitting section" << endl;
             }
 
             affectedFace.unset(faceI);
         }
-    }}
+    }
     
     // 4. new internal faces inside split cells.
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
