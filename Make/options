@@ -1,9 +1,9 @@
 DEBUG_OPT = -g
 NO_DEBUG_OPT = 
 
-OF_Major = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|\.[0-9]*\.[0-9]*||')
-OF_Patch = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|[0-9]*\.[0-9]*\.||')
-OF_Minor = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|[0-9]*\.\([0-9]*\)\.[0-9]*|\1|')
+OF_Major = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|\.[0-9]*\.[0-9]*[x]*||')
+OF_Patch = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|[0-9]*\.[0-9]*\.||' | sed -e 's|x|99|')
+OF_Minor = $(shell echo $(WM_PROJECT_VERSION) | sed -e 's|[0-9]*\.\([0-9]*\)\.[0-9]*[x]*|\1|')
 
 MACRO_DEFINED= \
 	-DOF_MAJOR=$(OF_Major) \
