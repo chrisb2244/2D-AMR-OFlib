@@ -1016,8 +1016,10 @@ void Foam::refinementTree::compact()
             // parent or subsplits.
             if
             (
-                splitCells_[index].parent_ != -1			// catches cells that DO have a parent, ie they are refined
-             || splitCells_[index].addedCellsPtr_.valid()	// catches cells that have children, ie they are refined
+                splitCells_[index].parent_ != -1
+                    // catches cells that DO have a parent, ie they are refined
+             || splitCells_[index].addedCellsPtr_.valid()
+                    // catches cells that have children, ie they are refined
             )
             {
                 markSplit(index, oldToNew, newSplitCells);
@@ -1034,8 +1036,10 @@ void Foam::refinementTree::compact()
         }
         else if
         (
-            splitCells_[index].parent_ == -1				// is a cellLevel 0 cell, it has no parent
-         && splitCells_[index].addedCellsPtr_.empty()		// cell has no children, it is unrefined
+            splitCells_[index].parent_ == -1
+                // is a cellLevel 0 cell, it has no parent
+         && splitCells_[index].addedCellsPtr_.empty()
+                // cell has no children, it is unrefined
         )
         {
             // recombined cell. No need to keep since no parent and no subsplits
@@ -1124,7 +1128,8 @@ Foam::label Foam::refinementTree::myParentCell(const label cellI) const
 {
 	if (debug) Pout<< "cellI = " << cellI << endl;
 	label visIndex = visibleCells_[cellI];
-	if (visIndex < 0) // visibleCells_ gives -1 for the root, base level parent cells (initial mesh cells)
+    if (visIndex < 0) // visibleCells_ gives -1 for the root,
+                      // base level parent cells (initial mesh cells)
 	{
 		if (visIndex != -1)
 		{
@@ -1137,8 +1142,14 @@ Foam::label Foam::refinementTree::myParentCell(const label cellI) const
 	else
 	{
 		label splitIndex = splitCells_[visIndex].parent_;
-		if (debug) Pout<< "splitCells_[splitIndex] = splitCells_[" << splitIndex << "] = " << splitCells_[splitIndex] << endl;
-		FixedList<label, 4> splitList = splitCells_[splitIndex].addedCellsPtr_();
+        if (debug) {
+            Pout<< "splitCells_[splitIndex] = splitCells_["
+                << splitIndex << "] = "
+                << splitCells_[splitIndex]
+                << endl;
+        }
+        FixedList<label, 4> splitList =
+                splitCells_[splitIndex].addedCellsPtr_();
 		forAll (visibleCells_, i)
 		{
 			if (visibleCells_[i] == splitList[0])
@@ -1181,7 +1192,8 @@ Foam::label Foam::refinementTree::findInVis(const label splitIndex) const
 // Returns a list starting with the cell given and moving up through its parents.
 // The same label can appear repeatedly if the cell was refined from itself 
 // (ie it is the lower left corner of a refined cell)
-Foam::DynamicList<Foam::label> Foam::refinementTree::parentList(const label cellI) const
+Foam::DynamicList<Foam::label> Foam::refinementTree::parentList(
+        const label cellI) const
 {
 	DynamicList<Foam::label> parentList;
 	label X = visibleCells_[cellI];
@@ -1195,7 +1207,8 @@ Foam::DynamicList<Foam::label> Foam::refinementTree::parentList(const label cell
 		label Y = splitCells_[X].parent_;
 		while (splitCells_[Y].parent_ != -1)
 		{
-			FixedList<label, 4> splitList = splitCells_[Y].addedCellsPtr_();  // This is my (A B C D)
+            FixedList<label, 4> splitList = splitCells_[Y].addedCellsPtr_();
+            // This is my (A B C D)
 			parentList.append(findInVis(splitList[0]));
 			Y = splitCells_[Y].parent_;
 		}
@@ -1218,7 +1231,8 @@ Foam::DynamicList<Foam::label> Foam::refinementTree::parentList(const label cell
 		return parentList;
 	}
 	FatalErrorIn("parentList(..)")
-		<< "Reached the end of the function without returning a list of parent cells"
+        << "Reached the end of the function without returning "
+        << "a list of parent cells"
 		<< abort(FatalError);
 	return parentList;
 }
@@ -1254,7 +1268,8 @@ void Foam::refinementTree::storeSplit
     else
     {
 		Pout<< "Don't expect this to be called from storeSplit." << endl;
-		Pout<< "The value of visibleCells_[cellI] for cellI = " << cellI << " is ";
+        Pout<< "The value of visibleCells_[cellI] for cellI = " << cellI
+            << " is ";
 		Pout<< visibleCells_[cellI] << endl;
         // Create 0th level. -1 parent to denote this.
         parentIndex = allocateSplitCell(-1, -1);
@@ -1268,7 +1283,8 @@ void Foam::refinementTree::storeSplit
 
         // Create entries for the split off cells. All of them
         // are visible.
-        //Pout<< "allocateSplitCell called with args parentIndex: " << parentIndex << ", i: "<< i << endl;
+        //Pout<< "allocateSplitCell called with args parentIndex: "
+        //    << parentIndex << ", i: "<< i << endl;
         visibleCells_[addedCellI] = allocateSplitCell(parentIndex, i);
     }
 }

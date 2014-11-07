@@ -96,7 +96,8 @@ class hexRef4
         
         // cell Depth and aspect ratio
         const vector cell0Lengths_;
-        const double aspectX_to_Y_; // Multiply x per cell by this to get y per cell
+        const double aspectX_to_Y_; // Multiply x per cell by this
+                                    // to get y per cell
         
 
         //- Face remover engine
@@ -136,14 +137,29 @@ class hexRef4
         
     // Private Member Functions
 
-		Foam::vector calcSingleFaceNormal(const pointField&, const label&) const;
+        Foam::vector calcSingleFaceNormal(
+                const pointField&,
+                const label&
+                ) const;
+
 		int calcRelevantDirs(const Foam::vector&, const bool Fatal);
-		int calcRelevantDirs(const Foam::vector&, const label& owner, const label& neighbour, const bool Fatal);
+        int calcRelevantDirs(
+                const Foam::vector&,
+                const label& owner,
+                const label& neighbour,
+                const bool Fatal
+                );
 
 		//- Set up a vectorField holding the vector normals of each face.
 		void calcFaceNormalVector(const pointField&, vectorField&) const;
 		
-		void setIndicators(const label& own, const label& nei, label& ownInd, label& neiInd, const bool refinementBool[]);
+        void setIndicators(
+                const label& own,
+                const label& nei,
+                label& ownInd,
+                label& neiInd,
+                const bool refinementBool[]
+                );
 		
 		double getCellLength(const label& dimension);
 		double getAspectRatio();

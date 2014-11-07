@@ -84,7 +84,11 @@ public:
 	
 	void printInfo();
 
-	regenerateAlphaClass(const dynamicFvMesh& mesh, const double seed, const double yMid);
+    regenerateAlphaClass(
+            const dynamicFvMesh& mesh,
+            const double seed,
+            const double yMid
+            );
 	virtual ~regenerateAlphaClass();
 	
 private:

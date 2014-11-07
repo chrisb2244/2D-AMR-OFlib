@@ -55,7 +55,9 @@ License
 #include "SubField.H"
 
 
-#include "VersionCompat_DynRef.H" 	// Macro defines for version compatibility with older than 2.3.0 OpenFOAM versions.
+#include "VersionCompat_DynRef.H"
+// Macro defines for version compatibility with
+// older than 2.3.0 OpenFOAM versions.
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -63,16 +65,16 @@ License
 namespace Foam
 {
     defineTypeNameAndDebug(dynamicRefineFvMeshHexRef4, 0);
-    addToRunTimeSelectionTable(dynamicFvMesh, dynamicRefineFvMeshHexRef4, IOobject);
-    
-    
+    addToRunTimeSelectionTable(
+            dynamicFvMesh, dynamicRefineFvMeshHexRef4, IOobject);
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 // the PackedBoolList::count method would probably be faster
 // since we are only checking for 'true' anyhow
-Foam::label Foam::dynamicRefineFvMeshHexRef4::count(const PackedBoolList& l, const unsigned int val)
+Foam::label Foam::dynamicRefineFvMeshHexRef4::count(
+        const PackedBoolList& l, const unsigned int val)
 {
     label n = 0;
     forAll(l, i)
@@ -144,7 +146,8 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::twoDNess(const polyMesh& mesh)
     {
         // Cannot find cell to make decent angle with cell0-cell1 vector.
         // Note: what to do here? All cells (almost) in one line. Maybe 1D case?
-        Pout<< "All cells seem to be in one line. Returning -1 from twoDNess" << endl;
+        Pout<< "All cells seem to be in one line. Returning -1 from twoDNess"
+            << endl;
         return -1;
     }
 
@@ -165,8 +168,10 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::twoDNess(const polyMesh& mesh)
         if (cellPlane.distance(ctrs[cellI]) > 1e-6*minLen)
         {
             // Centres not in plane
-            Pout<< "returning since centres not in a plane. cellI = " << cellI << endl;
-			Pout<< "cell centre of cellI at " << mesh.cellCentres()[cellI] << endl;
+            Pout<< "returning since centres not in a plane. cellI = "
+                << cellI << endl;
+            Pout<< "cell centre of cellI at " << mesh.cellCentres()[cellI]
+                   << endl;
 			Pout<< "The location of cellI's vertices are: " ;
 			forAll(mesh.cellPoints()[cellI], pt)
 			{
@@ -252,14 +257,16 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::twoDNess(const polyMesh& mesh)
     return axisIndex;
 }
 
-Foam::vector Foam::dynamicRefineFvMeshHexRef4::calculateNormalVector(const Foam::label& axisIndex)
+Foam::vector Foam::dynamicRefineFvMeshHexRef4::calculateNormalVector(
+        const Foam::label& axisIndex)
 {
 	vector normalVector;
 	
 	if (axisIndex == -1)
         {
             Info<< "3D case; this is for 2D cases only" << nl << endl;
-            FatalErrorIn("dynamicRefineFvMeshHexRef4::calculateNormalVector(const label&)")
+            FatalErrorIn("dynamicRefineFvMeshHexRef4::calculateNormalVector\
+                         (const label&)")
                     << "3D case detected. This tool requires a 2D mesh. "
                     << "Set one direction to empty or "
                     << "choose dynamicRefineFvMesh as the mesh type."
@@ -269,26 +276,38 @@ Foam::vector Foam::dynamicRefineFvMeshHexRef4::calculateNormalVector(const Foam:
     {
         if (axisIndex == 0)
         {
-            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - 2D case; refining in directions y,z\n" << endl;
-            FatalErrorIn("Wrong direction of refinement for new setup - set z to the empty direction!") << abort(FatalError);
+            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - "
+                << "2D case; refining in directions y,z\n" << endl;
+            FatalErrorIn("dynamicRefineFvMeshHexRef4::calculateNormalVector\
+                         (const label&)")
+                << "Wrong direction of refinement for new setup - "
+                << "set z to the empty direction!"
+                << abort(FatalError);
             normalVector = vector(1,0,0);
         }
         else if (axisIndex == 1)
         {
-            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - 2D case; refining in directions x,z\n" << endl;
-            FatalErrorIn("Wrong direction of refinement for new setup - set z to the empty direction!") << abort(FatalError);
+            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - "
+                << "2D case; refining in directions x,z\n" << endl;
+            FatalErrorIn("dynamicRefineFvMeshHexRef4::calculateNormalVector\
+                         (const label&)")
+                << "Wrong direction of refinement for new setup - "
+                << "set z to the empty direction!"
+                << abort(FatalError);
             normalVector = vector(0,1,0);
         }
         else
         {
-            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - 2D case; refining in directions x,y\n" << endl;
+            Info<< "dynamicRefineFvMeshHexRef4::calculateNormalVector - "
+                << "2D case; refining in directions x,y\n" << endl;
             normalVector = vector(0,0,1);
         }
 	}
 	return normalVector;
 }
 
-void Foam::dynamicRefineFvMeshHexRef4::calculateProtectedCells(PackedBoolList& unrefineableCell) const
+void Foam::dynamicRefineFvMeshHexRef4::calculateProtectedCells(
+        PackedBoolList& unrefineableCell) const
 {
     if (protectedCell_.empty())
     {
@@ -457,7 +476,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refineAtZero
 
             if (oldFaceI >= nInternalFaces())
             {
-                FatalErrorIn("dynamicRefineFvMeshHexRef4::refine(const labelList&)")
+                FatalErrorIn("dynamicRefineFvMeshHexRef4::refine\
+                             (const labelList&)")
                     << "New internal face:" << faceI
                     << " fc:" << faceCentres()[faceI]
                     << " originates from boundary oldFace:" << oldFaceI
@@ -522,7 +542,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refineAtZero
         {
 			if (!correctFluxes_.found(iter.key()))
             {
-                WarningIn("dynamicRefineFvMeshHexRef4::refine(const labelList&)")
+                WarningIn("dynamicRefineFvMeshHexRef4::refine\
+                          (const labelList&)")
                     << "Cannot find surfaceScalarField " << iter.key()
                     << " in user-provided flux mapping table "
                     << correctFluxes_ << endl
@@ -621,9 +642,10 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refineAtZero
                     //Pout<< " patchI = " << patchI;
                     if (patchI == 4)
                     {
-						// frontAndBack patch - nonuniform empty 0(); can't look up the values
-						// Need some solution, pref involving a test for empty condition,
-						// and then setting patchPhi[i] = 0, perhaps?
+                        // frontAndBack patch - nonuniform empty 0();
+                        // can't look up the values
+                        // Need some solution, pref involving a test for empty
+                        // condition, and then setting patchPhi[i] = 0, perhaps?
 						
 						//Pout<< endl;
 						continue;
@@ -701,7 +723,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
 
             if (oldFaceI >= nInternalFaces())
             {
-                FatalErrorIn("dynamicRefineFvMeshHexRef4::refine(const labelList&)")
+                FatalErrorIn("dynamicRefineFvMeshHexRef4::\
+                             refine(const labelList&)")
                     << "New internal face:" << faceI
                     << " fc:" << faceCentres()[faceI]
                     << " originates from boundary oldFace:" << oldFaceI
@@ -766,7 +789,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
         {
 			if (!correctFluxes_.found(iter.key()))
             {
-                WarningIn("dynamicRefineFvMeshHexRef4::refine(const labelList&)")
+                WarningIn("dynamicRefineFvMeshHexRef4::refine\
+                          (const labelList&)")
                     << "Cannot find surfaceScalarField " << iter.key()
                     << " in user-provided flux mapping table "
                     << correctFluxes_ << endl
@@ -865,9 +889,10 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
                     //Pout<< " patchI = " << patchI;
                     if (patchI == 4)
                     {
-						// frontAndBack patch - nonuniform empty 0(); can't look up the values
-						// Need some solution, pref involving a test for empty condition,
-						// and then setting patchPhi[i] = 0, perhaps?
+                        // frontAndBack patch - nonuniform empty 0();
+                        // can't look up the values
+                        // Need some solution, pref involving a test for empty
+                        // condition, and then setting patchPhi[i] = 0, perhaps?
 						
 						//Pout<< endl;
 						continue;
@@ -930,7 +955,7 @@ Foam::dynamicRefineFvMeshHexRef4::unrefine
     // Find the faceMidPoints on cells to be combined.
     // for each face resulting of split of face into four store the
     // midpoint
-    // ******************************* PROBLEM? *******************************//
+    // ****************************** PROBLEM? ******************************//
     Map<label> faceToSplitPoint(3*splitPoints.size());
 
     {
@@ -995,7 +1020,8 @@ Foam::dynamicRefineFvMeshHexRef4::unrefine
         {
             if (!correctFluxes_.found(iter.key()))
             {
-                WarningIn("dynamicRefineFvMeshHexRef4::refine(const labelList&)")
+                WarningIn("dynamicRefineFvMeshHexRef4::refine\
+                          (const labelList&)")
                     << "Cannot find surfaceScalarField " << iter.key()
                     << " in user-provided flux mapping table "
                     << correctFluxes_ << endl
@@ -1733,7 +1759,10 @@ bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
 
         if ((nRefinementIterations_ % 10) == 0)
         {
-			if (debug) Pout<< "Call in dynamicRefineFvMeshHexRef4.C to compact()." << endl;
+            if (debug) {
+                Pout<< "Call in dynamicRefineFvMeshHexRef4.C to compact()."
+                    << endl;
+            }
             // Compact refinement history occassionally (how often?).
             // Unrefinement causes holes in the refinementHistory.
             const_cast<refinementTree&>(meshCutter().history()).compact();
@@ -1936,7 +1965,10 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
 
         if ((nRefinementIterations_ % 10) == 0)
         {
-			if (debug) Pout<< "Call in dynamicRefineFvMeshHexRef4.C to compact()." << endl;
+            if (debug) {
+                Pout<< "Call in dynamicRefineFvMeshHexRef4.C to compact()."
+                    << endl;
+            }
             // Compact refinement history occassionally (how often?).
             // Unrefinement causes holes in the refinementHistory.
             const_cast<refinementTree&>(meshCutter().history()).compact();

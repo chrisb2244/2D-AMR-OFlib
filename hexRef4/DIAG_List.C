@@ -31,7 +31,8 @@ void Foam::DIAG_List::reportBools()
 	Pout<< endl << "******************************" << endl;
 	Pout<< "Diagnostic levels are recorded with values: " << endl;
 	
-	for(std::map<std::string, bool*>::iterator iter = myMap.begin(); iter != myMap.end(); iter++)
+    for(std::map<std::string, bool*>::iterator iter = myMap.begin();
+        iter != myMap.end(); iter++)
 	{
 		Pout<< iter->first << " = " << *(iter->second) << endl;
 	}
@@ -47,5 +48,6 @@ void Foam::DIAG_List::addToList(const std::string lookupName, bool &boolName)
 
 bool Foam::DIAG_List::lookupValue(const std::string lookupName)
 {
-	return myDict.lookupOrDefault<bool> (lookupName, default_Diag, recursive_Search, pattern_Matching);
+    return myDict.lookupOrDefault<bool>(
+                lookupName, default_Diag, recursive_Search, pattern_Matching);
 }

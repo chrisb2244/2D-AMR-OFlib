@@ -75,7 +75,8 @@ namespace Foam
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-Foam::vector Foam::hexRef4::calcSingleFaceNormal(const pointField& p, const label& faceI) const
+Foam::vector Foam::hexRef4::calcSingleFaceNormal(
+        const pointField& p, const label& faceI) const
 {
     const labelList& f = mesh_.faces()[faceI];
     point fCentre = p[f[0]];
@@ -136,8 +137,8 @@ double Foam::hexRef4::getCellLength(const label& dimension)
                     FatalErrorIn("getCellDepth()")
                         << "The value of z computed between point "
                         << pointI
-                        << " and point 0 of cell 0 was not the same as for an earlier point "
-                        << "with non-zero difference in z. "
+                        << " and point 0 of cell 0 was not the same as for "
+                        << "an earlier point with non-zero difference in z. "
                         << "This might be due to skewed cells." 
                         << abort(FatalError);
                 }
@@ -168,7 +169,8 @@ double Foam::hexRef4::getCellLength(const label& dimension)
 double Foam::hexRef4::getAspectRatio()
 {
     // Assumes all cells have the same aspect ratio (although not size)
-    // Could also be wrong, but shouldn't be (and if so, probably problems elsewhere)
+    // Could also be wrong, but shouldn't be
+    // (and if so, probably problems elsewhere)
     if (DIAG_GetAspectRatio)
     {
         Pout<< "cell0Lengths are ";
@@ -190,15 +192,17 @@ double Foam::hexRef4::getAspectRatio()
         {
             if (DIAG_GetAspectRatio)
             {
-                Pout<< "Cell aspect ratio of X:Y = " << mag(vec[0]) << ":" << mag(vec[1]) << endl;
-                Pout<< "Setting aspect value to " << (mag(vec[1])/mag(vec[0])) << endl;
+                Pout<< "Cell aspect ratio of X:Y = "
+                    << mag(vec[0]) << ":" << mag(vec[1]) << endl;
+                Pout<< "Setting aspect value to "
+                    << (mag(vec[1])/mag(vec[0])) << endl;
             }
             return (mag(vec[1])/mag(vec[0]));
         }
     }
     FatalErrorIn("getAspectRatio()")
-        << "Couldn't find a point with both X and Y larger than point0 of cell0 "
-        << "by at least 1E-10"
+        << "Couldn't find a point with both X and Y larger than point0 of cell0"
+        << " by at least 1E-10"
         << abort(FatalError);
     return -1;
 }
@@ -224,7 +228,8 @@ bool Foam::hexRef4::readToggle()
     const int deflt = 0;
     const bool recursive_Search = false;
     const bool pattern_Matching = false;
-    int toggle = refineDict.lookupOrDefault<int> ("toggle", deflt, recursive_Search, pattern_Matching);
+    int toggle = refineDict.lookupOrDefault<int>(
+        "toggle", deflt, recursive_Search, pattern_Matching);
     if ((toggle != 0) && (toggle != 1))
     {
         FatalErrorIn("readToggle()")
@@ -292,7 +297,11 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const bool Fatal)
     return calcRelevantDirs(dir, -20, -20, Fatal);
 }
 
-int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=-20, const label& neighbour=-20, const bool Fatal=true)
+int Foam::hexRef4::calcRelevantDirs(
+        const Foam::vector& dir,
+        const label& owner=-20,
+        const label& neighbour=-20,
+        const bool Fatal=true)
 {
     DynamicList<label> relevDirs;
     scalar relevantDir = 12345;
@@ -312,7 +321,8 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
             {
                 Pout<< "relevDirs.size == 2. relevDirs = " << relevDirs << endl;
                 Pout<< "own = " << owner << ", nei = " << neighbour << endl;
-                Pout<< "cellLevel of own, nei = " << cellLevel_[owner] << ", " << cellLevel_[neighbour] << endl;
+                Pout<< "cellLevel of own, nei = " << cellLevel_[owner] << ", "
+                    << cellLevel_[neighbour] << endl;
                 Pout<< "aspect = " << aspectX_to_Y_ << endl;
             }
             label minCellLevel = min(cellLevel_[owner], cellLevel_[neighbour]);
@@ -325,7 +335,8 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
             scalar SMALLVAL = 1E-5;
             if (mag(mag(ratio) - (3*aspectX_to_Y_)) < SMALLVAL)
             {
-                if (DIAG_CalcRelevantDirs) Pout<< "ratio = 3 * aspect. Expect vertical pair" << endl;
+                if (DIAG_CalcRelevantDirs)
+                    Pout<< "ratio = 3 * aspect. Expect vertical pair" << endl;
                 // Vertical pair
                 if (ly > 0)
                 {
@@ -338,7 +349,8 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
             }
             else if (mag(mag(ratio) - (aspectX_to_Y_)/3) < SMALLVAL)
             {
-                if (DIAG_CalcRelevantDirs) Pout<< "ratio = aspect / 3. Expect horizontal pair" << endl;
+                if (DIAG_CalcRelevantDirs)
+                    Pout<< "ratio = aspect / 3. Expect horizontal pair" << endl;
                 // Horizontal pair
                 if (lx > 0)
                 {
@@ -358,7 +370,8 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
                 << "The number of non-zero(ish) directions != 1. (="
                 << relevDirs.size() << ")"
                 << nl
-                << "mag(dir) = " << vector(mag(dir[0]), mag(dir[1]), mag(dir[2]))
+                << "mag(dir) = "
+                << vector(mag(dir[0]), mag(dir[1]), mag(dir[2]))
                 << nl
                 << "dir = " << dir
                 << abort(FatalError);
@@ -370,19 +383,25 @@ int Foam::hexRef4::calcRelevantDirs(const Foam::vector& dir, const label& owner=
     }
     else
     {
-        relevantDir = ((dir[relevDirs[0]-1] > 0) ? relevDirs[0] : (-1*relevDirs[0]));
+        relevantDir =
+                ((dir[relevDirs[0]-1] > 0) ? relevDirs[0] : (-1*relevDirs[0]));
     }
     
     if (relevantDir == 12345)
     {
         FatalErrorIn("hexRef4::calcRelevantDirs(..)")
-            << "relevantDir was not set during the function. This error should not have been reached"
+            << "relevantDir was not set during the function. "
+            << "This error should not have been reached"
             << abort(FatalError);
     }
     return relevantDir;
 }
 
-void Foam::hexRef4::setBoundaryCellInfo(const label& faceI, const labelList& parentAddedCells, label& own, const int a)
+void Foam::hexRef4::setBoundaryCellInfo(
+        const label& faceI,
+        const labelList& parentAddedCells,
+        label& own,
+        const int a)
 {
     if (parentAddedCells.size() != 4)
     {
@@ -427,7 +446,8 @@ void Foam::hexRef4::setBoundaryCellInfo(const label& faceI, const labelList& par
         
         default:
         FatalErrorIn("hexRef4::setRefinement(..)")
-            << "Could not match the relevantDir found with an expected case (external face)"
+            << "Could not match the relevantDir found with an expected case "
+            << "(external face)"
             << nl
             << "faceI : " << faceI
             << ", relevantDir : " << relevantDir
@@ -462,7 +482,8 @@ void Foam::hexRef4::setInternalFaceInfo
     label ownInd = own;
     label neiInd = nei;
     
-    // These ifs are to prevent looking up a cellAddedCell list which doesn't exist.
+    // These ifs are to prevent looking up a cellAddedCell list
+    // which doesn't exist.
     if (own >= cellAddedCells.size())
     {
         ownInd = history_.myParentCell(own);
@@ -486,7 +507,9 @@ void Foam::hexRef4::setInternalFaceInfo
         }
     }
     
-    point ptOwn = mesh_.cellCentres()[ownInd]; // mesh_.cellCentres() only has the previous timestep's cells, ie, not newly refined cells.
+    point ptOwn = mesh_.cellCentres()[ownInd];
+    // mesh_.cellCentres() only has the previous timestep's cells,
+    // ie, not newly refined cells.
     point ptNei = mesh_.cellCentres()[neiInd];
     vector dir(ptNei - ptOwn);
     int relevantDir = calcRelevantDirs(dir, ownInd, neiInd);
@@ -575,7 +598,8 @@ void Foam::hexRef4::setInternalFaceInfo
     }
 }
 
-void Foam::hexRef4::calcFaceNormalVector(const pointField& p, vectorField& fAreas) const
+void Foam::hexRef4::calcFaceNormalVector(
+        const pointField& p, vectorField& fAreas) const
 {
     const faceList& fs = mesh_.faces();
 
@@ -616,7 +640,8 @@ void Foam::hexRef4::calcFaceNormalVector(const pointField& p, vectorField& fArea
 
             // This is to deal with zero-area faces. Mark very small faces
             // to be detected in e.g., processorPolyPatch.
-            (sumA < ROOTVSMALL) ? fAreas[facei] = vector::zero : fAreas[facei] = 0.5*sumN;
+            (sumA < ROOTVSMALL) ? fAreas[facei] = vector::zero :
+                    fAreas[facei] = 0.5*sumN;
         }
     }
 }
@@ -659,7 +684,8 @@ void Foam::hexRef4::myGetFaceVertsLists
             else
             {
                 FatalErrorIn("myGetFaceVertsLists(..)")
-                    << "A mid point was not found opposite an already found mid point"
+                    << "A mid point was not found opposite "
+                    << "an already found mid point"
                     << abort(FatalError);
             }
         }
@@ -683,14 +709,16 @@ void Foam::hexRef4::myGetFaceVertsLists
                 else
                 {
                     FatalErrorIn("myGetFaceVertsLists(..)")
-                    << "A mid point was not found opposite an already found mid point"
+                    << "A mid point was not found opposite "
+                    << "an already found mid point"
                     << abort(FatalError);
                 }
             }
             else
             {
                 FatalErrorIn("myGetFaceVertsLists(..)")
-                    << "A mid point was not found on either of two consecutive edges"
+                    << "A mid point was not found on either of "
+                    << "two consecutive edges"
                     << abort(FatalError);
             }
         }
@@ -725,7 +753,8 @@ void Foam::hexRef4::myGetFaceVertsLists
     if (dir[0] < -1E-10 || dir[1] < -1E-10 || dir[2] < -1E-10)
     {
         if (DIAG_Switch) {
-            Pout<< "Switching vectors newFaceVertsA - original dir = " << dir << endl;
+            Pout<< "Switching vectors newFaceVertsA - original dir = "
+                << dir << endl;
         }
         DynamicList<label> tempVerts = newFaceVertsA[0];
         newFaceVertsA[0] = newFaceVertsA[1];
@@ -768,7 +797,8 @@ void Foam::hexRef4::mySplitSideFaces
     polyTopoChange& meshMod
 )
 {
-    // Values of oldOwn and oldNei are those given by getFaceNeighbours for faceI
+    // Values of oldOwn and oldNei are those given by
+    // getFaceNeighbours for faceI
     DynamicList<label> newFaceVertsA[2];
     myGetFaceVertsLists
     (
@@ -790,8 +820,9 @@ void Foam::hexRef4::mySplitSideFaces
                 << ", " << oldNei << endl;
         }
         
-        const labelList& pACells = (cellLevel_[oldOwn] > 0) ? \
-            cellAddedCells[history_.myParentCell(oldOwn)] : cellAddedCells[oldOwn];
+        const labelList& pACells = (cellLevel_[oldOwn] > 0) ?
+                    cellAddedCells[history_.myParentCell(oldOwn)] :
+                    cellAddedCells[oldOwn];
 
         setBoundaryCellInfo(faceI, pACells, own, 1);
         face newFace;
@@ -815,9 +846,12 @@ void Foam::hexRef4::mySplitSideFaces
     {
         if (DIAG_SplitSideFaces)
         {
-            Pout<< "Internal cell - Initial own/nei are " << oldOwn << ", " << oldNei << endl;
-            Pout<< "Edges on the (initial) face are : " << mesh_.faceEdges()[faceI] << endl;
-            Pout<< "Points around the initial face are : " << mesh_.faces()[faceI] << endl;
+            Pout<< "Internal cell - Initial own/nei are " << oldOwn << ", "
+                << oldNei << endl;
+            Pout<< "Edges on the (initial) face are : "
+                << mesh_.faceEdges()[faceI] << endl;
+            Pout<< "Points around the initial face are : "
+                << mesh_.faces()[faceI] << endl;
         }
 
         setInternalFaceInfo(cellAddedCells, 1, own, nei, meshMod);
@@ -838,8 +872,12 @@ void Foam::hexRef4::mySplitSideFaces
             }
         }
         
-        label ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
-        label neiInd = nei < mesh_.cellCentres().size() ? nei : history_.myParentCell(nei);
+        label ownInd = own < mesh_.cellCentres().size() ?
+                    own :
+                    history_.myParentCell(own);
+        label neiInd = nei < mesh_.cellCentres().size() ?
+                    nei :
+                    history_.myParentCell(nei);
         
         checkInternalOrientation
         (
@@ -893,8 +931,12 @@ void Foam::hexRef4::mySplitSideFaces
             }
         }
     
-        ownInd = own < mesh_.cellCentres().size() ? own : history_.myParentCell(own);
-        neiInd = nei < mesh_.cellCentres().size() ? nei : history_.myParentCell(nei);
+        ownInd = own < mesh_.cellCentres().size() ?
+                    own :
+                    history_.myParentCell(own);
+        neiInd = nei < mesh_.cellCentres().size() ?
+                    nei :
+                    history_.myParentCell(nei);
         checkInternalOrientation
         (
             meshMod,
@@ -969,18 +1011,23 @@ void Foam::hexRef4::myCreateInternalFaces
             facesProcessed++;
         }
     }
-    if (facesProcessed > 6) // Useless variable? cFaces.size() might do this, and the rest. Not sure which would be faster.
+    if (facesProcessed > 6) // Useless variable?
+        // cFaces.size() might do this, and the rest.
+        // Not sure which would be faster.
     {
         if (DIAG_CreateInternalFaces)
         {
-            Pout<< "Warning: More than 6 faces processed. Check for errors due to this!" << endl;
-            Pout<< "cellI = " << cellI << ", faces of cellI = " << cFaces << " and faceNormals are ";
+            Pout<< "Warning: More than 6 faces processed. "
+                << "Check for errors due to this!" << endl;
+            Pout<< "cellI = " << cellI << ", faces of cellI = "
+                << cFaces << " and faceNormals are ";
         }
         DynamicList<vector> faceNormalList;
         forAll (cFaces, i)
         {
             label faceI = cFaces[i];
-            Foam::vector faceNormalI = calcSingleFaceNormal(mesh_.points(), faceI);
+            Foam::vector faceNormalI =
+                    calcSingleFaceNormal(mesh_.points(), faceI);
             faceNormalI /= mag(faceNormalI);
             faceNormalList.append(faceNormalI);
         }
@@ -1018,18 +1065,23 @@ void Foam::hexRef4::myCreateInternalFaces
     forAll(ncF, i)
     {
         label faceI = ncF[i];
-        vector directionToFaceFromCentre(mesh_.faceCentres()[faceI] - mesh_.cellCentres()[cellI]);
-        // The false here causes a return 100, instead of FatalError, if the relevantDir cannot be found
+        vector directionToFaceFromCentre(
+                    mesh_.faceCentres()[faceI] - mesh_.cellCentres()[cellI]);
+        // The false here causes a return 100, instead of FatalError,
+        // if the relevantDir cannot be found
         label relevantDir = calcRelevantDirs(directionToFaceFromCentre, false);
         if (relevantDir == 100)
         {
             // face is offset
             facesToCombine.append(faceI);
-            if (DIAG_CreateInternalFaces && (facesProcessed - (facesToCombine.size()/2) == 6))
+            if (DIAG_CreateInternalFaces &&
+                    (facesProcessed - (facesToCombine.size()/2) == 6))
             {
-                Pout<< "Added faceI = " << faceI << " to a list of faces to combine. ";
+                Pout<< "Added faceI = " << faceI
+                    << " to a list of faces to combine. ";
                 Pout<< "List: " << facesToCombine;
-                Pout<< ". facesProcessed earlier = " << facesProcessed << endl;
+                Pout<< ". facesProcessed earlier = "
+                    << facesProcessed << endl;
             }
             continue;
         }
@@ -1039,8 +1091,10 @@ void Foam::hexRef4::myCreateInternalFaces
         
         if (DIAG_CreateInternalFaces)
         {
-            Pout<< "The points forming the target face are " << mesh_.faces()[faceI] << endl;
-            Pout<< "The edges of the target face are " << fEdges << endl;
+            Pout<< "The points forming the target face are "
+                << mesh_.faces()[faceI] << endl;
+            Pout<< "The edges of the target face are "
+                << fEdges << endl;
         }
         
         forAll(edgesOnFace1, eI)
@@ -1090,7 +1144,8 @@ void Foam::hexRef4::myCreateInternalFaces
     if (facesToCombine.size()%2 != 0)
     {
         FatalErrorIn("myCreateInternalFaces(..)")
-            << "The list of faces to combine does not contain an even number of faces. "
+            << "The list of faces to combine does not contain "
+            << "an even number of faces. "
             << "List: " << facesToCombine << abort(FatalError);
     }
     label numPairedFaces = facesToCombine.size() / 2;
@@ -1142,9 +1197,10 @@ void Foam::hexRef4::myCreateInternalFaces
 
         point newCentre(0,0,0);
         
-        // Get the centre of the combined face, so that the direction to the face
-        // can be calculated. sharedPoints[0,1] don't have values in mesh_.points()
-        // and so cannot be used here (or else that would be preferable!)
+        // Get the centre of the combined face, so that the direction to the
+        // face can be calculated. sharedPoints[0,1] don't have values in
+        // mesh_.points() and so cannot be used here
+        // (or else that would be preferable!)
         label faceI = pairedFaces[i].first();
         forAll(mesh_.faces()[faceI], pt)
         {
@@ -1172,7 +1228,8 @@ void Foam::hexRef4::myCreateInternalFaces
                 << " and newCentre = " << newCentre << endl;
         }
         
-        vector directionToFaceFromCentre(newCentre - mesh_.cellCentres()[cellI]);
+        vector directionToFaceFromCentre(
+                    newCentre - mesh_.cellCentres()[cellI]);
         label relevantDir = calcRelevantDirs(directionToFaceFromCentre);
         if (DIAG_CreateInternalFaces) {
             Pout<< "directionToFaceFromCentre = " << directionToFaceFromCentre 
@@ -1191,8 +1248,10 @@ void Foam::hexRef4::myCreateInternalFaces
                 newFaceVerts[1] = temp;
                 if (DIAG_CreateInternalFaces) 
                 {
-                    Pout<< "Triggered the pair of if statements in pairedFaces for -2 dir." << endl;
-                    Pout<< "Switching newFaceVerts [0] and [1]. newFaceVerts (after) = ";
+                    Pout<< "Triggered the pair of if statements in "
+                        << "pairedFaces for -2 dir." << endl;
+                    Pout<< "Switching newFaceVerts [0] and [1]. "
+                        << "newFaceVerts (after) = ";
                     Pout<< newFaceVerts << endl;
                 }
             }
@@ -1231,17 +1290,21 @@ void Foam::hexRef4::myCombineFaces
     if (facesToCombine.size()%2 != 0)
     {
         FatalErrorIn("myCreateInternalFaces(..)")
-            << "The list of faces to combine does not contain an even number of faces. "
-            << "List: " << facesToCombine << abort(FatalError);
+            << "The list of faces to combine does not "
+            << "contain an even number of faces. "
+            << "List: " << facesToCombine
+            << abort(FatalError);
     }
     label numPairedFaces = facesToCombine.size() / 2;
     
     forAll(facesToCombine, i)
     {
-        label refDir = calcRelevantDirs(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
+        label refDir = calcRelevantDirs(calcSingleFaceNormal(
+                                            mesh_.points(), facesToCombine[i]));
         forAll(pairedFaces, k)
         {
-            // Check the face isn't already included as the second part of an earlier pair
+            // Check the face isn't already included
+            // as the second part of an earlier pair
             if (facesToCombine[i] == pairedFaces[k].second())
             {
                 if (DIAG_CreateInternalFaces) {
@@ -1253,20 +1316,31 @@ void Foam::hexRef4::myCombineFaces
         }
         for(int j = i+1; j<facesToCombine.size(); j++)
         {
-            scalar SMALLVEC = 1E-5; // set this as a fraction of the max refinement cell length?
-            if
-            (
+            scalar SMALLVEC = 1E-5;
+            // set this as a fraction of the max refinement cell length?
+            if (calcRelevantDirs(calcSingleFaceNormal(
+                                     mesh_.points(), facesToCombine[j]))
+                    == refDir
                 // If the faces have the same faceNormal
-                calcRelevantDirs(calcSingleFaceNormal(mesh_.points(), facesToCombine[j])) == refDir
-             && // If the faces have either the same x, or same y coordinate (ie they are on a plane)
-                // There isn't a test here that the normal is also the normal to the plane, but I think it is ok?
-                (
-                    (mesh_.faceCentres()[facesToCombine[i]][0] - mesh_.faceCentres()[facesToCombine[j]][0]) < SMALLVEC
-                 || (mesh_.faceCentres()[facesToCombine[i]][1] - mesh_.faceCentres()[facesToCombine[j]][1]) < SMALLVEC
+
+             && (
+                    ( mesh_.faceCentres()[facesToCombine[i]][0]
+                    - mesh_.faceCentres()[facesToCombine[j]][0])
+                    < SMALLVEC
+                ||
+                    ( mesh_.faceCentres()[facesToCombine[i]][1]
+                    - mesh_.faceCentres()[facesToCombine[j]][1])
+                    < SMALLVEC
                 )
+                // If the faces have either the same x, or same y coordinate
+                // (ie they are on a plane)
+                // There isn't a test here that the normal is
+                // also the normal to the plane, but I think it is ok?
+
             )
             {
-                pairedFaces.append(Pair<label>(facesToCombine[i], facesToCombine[j]));
+                pairedFaces.append(
+                            Pair<label>(facesToCombine[i], facesToCombine[j]));
             }
         }
     }
@@ -1277,12 +1351,13 @@ void Foam::hexRef4::myCombineFaces
         List<vector> listOfFaceCentres;
         forAll (facesToCombine, i)
         {
-            listOfNormals.append(calcSingleFaceNormal(mesh_.points(), facesToCombine[i]));
+            listOfNormals.append(calcSingleFaceNormal(
+                                     mesh_.points(), facesToCombine[i]));
             listOfFaceCentres.append(mesh_.faceCentres()[facesToCombine[i]]);
         }
         FatalErrorIn("myCreateInternalFaces()")
-            << "The list of paired faces does not have the same number of entries " 
-            << "as the value of numPairedFaces. "
+            << "The list of paired faces does not have the "
+            << "same number of entries as the value of numPairedFaces."
             << nl
             << "numPairedFaces = " << numPairedFaces << nl
             << "pairedFaces = " << pairedFaces << nl
@@ -1306,7 +1381,8 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
 {
     if (DIAG_CreateInternalFaces)
     {
-        Pout<< "The newFaceVerts (for added internal faces) are " << newFaceVerts << endl;
+        Pout<< "The newFaceVerts (for added internal faces) are "
+            << newFaceVerts << endl;
         Pout<< "relevantDir = " << relevantDir << endl;
     }
 
@@ -1352,9 +1428,9 @@ void Foam::hexRef4::myCreateInternalFacesSubSection
     
     if (DIAG_CreateInternalFaces)
     {
-        face compactFace(identity(newFace.size()));
         pointField compactPoints(meshMod.points(), newFace);
-        Pout<< "The coordinates of the vertices are: " << compactPoints << endl;
+        Pout<< "The coordinates of the vertices are: "
+            << compactPoints << endl;
     }
     label faceLabel = -1;
     faceLabel = meshMod.setAction
@@ -3107,9 +3183,11 @@ Foam::hexRef4::hexRef4(const polyMesh& mesh, const bool readHistory)
         )   << "Restarted from inconsistent cellLevel or pointLevel files."
             << endl
             << "Number of cells in mesh:" << mesh_.nCells()
-            << " does not equal size of cellLevel:" << cellLevel_.size() << endl
+            << " does not equal size of cellLevel:"
+            << cellLevel_.size() << endl
             << "Number of points in mesh:" << mesh_.nPoints()
-            << " does not equal size of pointLevel:" << pointLevel_.size()
+            << " does not equal size of pointLevel:"
+            << pointLevel_.size()
             << abort(FatalError);
     }
 
@@ -3244,9 +3322,11 @@ Foam::hexRef4::hexRef4
             ", const labelList&, const refinementTree&)"
         )   << "Incorrect cellLevel or pointLevel size." << endl
             << "Number of cells in mesh:" << mesh_.nCells()
-            << " does not equal size of cellLevel:" << cellLevel_.size() << endl
+            << " does not equal size of cellLevel:"
+            << cellLevel_.size() << endl
             << "Number of points in mesh:" << mesh_.nPoints()
-            << " does not equal size of pointLevel:" << pointLevel_.size()
+            << " does not equal size of pointLevel:"
+            << pointLevel_.size()
             << abort(FatalError);
     }
 
@@ -4487,7 +4567,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
             {
                 label edgeI = cEdges[i];
                 
-                // Test to remove edges parallel to refinement from edge-splitting
+                // Test to remove edges parallel
+                // to refinement from edge-splitting
                 if (mag(normalDir & meshTools::normEdgeVec(mesh_, edgeI)) > 0.1)
                 {
                     continue; // go to the next edge.
@@ -4502,7 +4583,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                      && pointLevel_[e[1]] <= cellLevel_[cellI]
                     )
                     {
-                        edgeMidPoint[edgeI] = 12345;    // mark need for splitting
+                        edgeMidPoint[edgeI] = 12345;
+                        // mark need for splitting
                     }
                 }
             }
@@ -4537,7 +4619,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 // Edge marked to be split.
                 edgeMids[edgeI] = mesh_.edges()[edgeI].centre(mesh_.points());
                 if (DIAG_SetRefinement) {
-                    Pout<< "edgeI = " << edgeI << " was split in the middle, at "
+                    Pout<< "edgeI = " << edgeI
+                        << " was split in the middle, at "
                         << edgeMids[edgeI] << endl;
                 }
             }
@@ -4624,7 +4707,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
         
         forAll(faceAreas, faceI)
         {
-            Foam::vector faceNormal = (faceAreas[faceI] / mag(faceAreas[faceI]));
+            Foam::vector faceNormal =
+                    (faceAreas[faceI] / mag(faceAreas[faceI]));
             if (mag(faceNormal & normalDir) > 0.99)
             {
                 // Face is ~perpendicular to the direction not to be refined.
@@ -4640,19 +4724,23 @@ Foam::labelListList Foam::hexRef4::setRefinement
     {
         if (faceAnchorLevel[faceI] >= 0)
         {
-            label own = mesh_.faceOwner()[faceI];   // the label of the cell which owns faceI
-            label ownLevel = cellLevel_[own];       // the level of the cell which owns faceI
-            label newOwnLevel = ownLevel + (cellMidPoint[own] >= 0 ? 1 : 0); // if the cell is being refined, newOwnLevel = ownLevel + 1
+            // the label of the cell which owns faceI
+            label own = mesh_.faceOwner()[faceI];
+            // the level of the cell which owns faceI
+            label ownLevel = cellLevel_[own];
+            // if the cell is being refined, newOwnLevel = ownLevel + 1
+            label newOwnLevel = ownLevel + (cellMidPoint[own] >= 0 ? 1 : 0);
 
             label nei = mesh_.faceNeighbour()[faceI];
             label neiLevel = cellLevel_[nei];
-            label newNeiLevel = neiLevel + (cellMidPoint[nei] >= 0 ? 1 : 0); // same with the neighbouring cell
+            label newNeiLevel = neiLevel + (cellMidPoint[nei] >= 0 ? 1 : 0);
 
             if
             (
                (newOwnLevel > faceAnchorLevel[faceI]
              || newNeiLevel > faceAnchorLevel[faceI])
-             && frontAndBackFaces.get(faceI) // Take only faces perpendicular to the normalDirection
+             && frontAndBackFaces.get(faceI)
+                    // Take only faces perpendicular to the normalDirection
             )
             {
                 faceMidPoint[faceI] = 12345;    // mark to be split
@@ -4698,7 +4786,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 (
                     (newOwnLevel > faceAnchorLevel[faceI]
                 || newNeiLevel[i] > faceAnchorLevel[faceI])
-                && frontAndBackFaces.get(faceI) // Take only faces perpendicular to the normalDirection
+                && frontAndBackFaces.get(faceI)
+                        // Take only faces perpendicular to the normalDirection
                 )
                 {
                     faceMidPoint[faceI] = 12345;    // mark to be split
@@ -4912,7 +5001,6 @@ Foam::labelListList Foam::hexRef4::setRefinement
         if (cAnchors.size() == 8)
         {
             labelList& cAdded = cellAddedCells[cellI];
-            // cAdded is a reference to cellAddedCells[cellI]. i.e. replace everywhere and no change
             cAdded.setSize(4);
 
             // Original cell at 0
@@ -4921,11 +5009,14 @@ Foam::labelListList Foam::hexRef4::setRefinement
             // Update cell level
             newCellLevel[cellI] = cellLevel_[cellI]+1;
 
-            for (label i = 1; i < 4; i++) // Changed from 8 - only adding 3 new cells
+            for (label i = 1; i < 4; i++)
+                // Changed from 8 - only adding 3 new cells
             {
                 cAdded[i] = meshMod.setAction
                 (
-                    polyAddCell                             // cellI is the only non-negative value, so the (new) cell's master is set by cellID.
+                    // cellI is the only non-negative value,
+                    // so the (new) cell's master is set by cellID.
+                    polyAddCell
                     (
                         -1,                                 // master point
                         -1,                                 // master edge
@@ -4991,11 +5082,13 @@ Foam::labelListList Foam::hexRef4::setRefinement
 
     if (DIAG_SetRefinementTitles)
     {
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
         Pout<< "hexRef4::setRefinement :"
             << " Marking faces to be handled"
             << endl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
     }
     
     if (!DIAG_SetRefinement && !DIAG_SetRefinement_List)
@@ -5004,7 +5097,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
             << "are set to false." << endl
             << "Set DIAG_SetRefinement to true for a list of cells "
             << "and their faces, " << endl << "or set DIAG_SetRefinement_List "
-            << "to true for a detailed list of why each cell is going to be refined."
+            << "to true for a detailed list of why each "
+            << "cell is going to be refined."
             << endl;
     }
 
@@ -5030,7 +5124,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                         Pout<< "cFaces[" << i << "] = " << cFaces[i] << endl;
                     }
                     if (DIAG_SetRefinement_List) {
-                        facesToRefineWithReason.append(Pair<label>(cFaces[i], 1));
+                        facesToRefineWithReason.append(
+                                    Pair<label>(cFaces[i], 1));
                     }
                 }
             }
@@ -5058,7 +5153,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                     affectedFace.set(eFaces[i]);
                     if (DIAG_SetRefinement_List)
                     {
-                        facesToRefineWithReason.append(Pair<label>(eFaces[i], 9));
+                        facesToRefineWithReason.append(
+                                    Pair<label>(eFaces[i], 9));
                     }
                 }
             }
@@ -5078,13 +5174,17 @@ Foam::labelListList Foam::hexRef4::setRefinement
             << "Each reason can apply multiple times to a face. " << endl;
         Pout<< "1: Cell is refined (Max x2). " << nl
             << "3: Face is refined (Max x1, top or bottom only). " << nl
-            << "9: Edge is refined (Max x4(?) top or bottom. Can be only x2 for sides). " << endl;
+            << "9: Edge is refined (Max x4(?) top or bottom. "
+            << "Can be only x2 for sides). " << endl;
         Pout<< "Of note: " << nl
             << "40: Top or bottom face of a cell to be refined." << nl
             << "20: Side face between two cells being refined. " << nl
-            << "19: Side face of a cell being refined, but not a side bordering another to-be-refined cell. " << nl
-            << "18: Top or bottom face of a cell neighbouring two cells to be refined, but not being refined itself. " << nl
-            << "9: Top or bottom face of a cell neighbouring a cell to be refined, but not being refined itself. " << endl;
+            << "19: Side face of a cell being refined, but not a side "
+            << "bordering another to-be-refined cell. " << nl
+            << "18: Top or bottom face of a cell neighbouring two cells "
+            << "to be refined, but not being refined itself. " << nl
+            << "9: Top or bottom face of a cell neighbouring a cell to be "
+            << "refined, but not being refined itself. " << endl;
         Pout<< condensedList << endl;
     }
 
@@ -5094,9 +5194,11 @@ Foam::labelListList Foam::hexRef4::setRefinement
     if (DIAG_SetRefinementTitles)
     {
         Pout<< nl << nl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
         Pout<< "hexRef4::setRefinement : Splitting faces" << endl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
     }
 
     forAll(faceMidPoint, faceI)
@@ -5164,8 +5266,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                     
                     if (DIAG_SetRefinement)
                     {
-                        Pout<< nl << "Info from part 1. faceI = " << faceI << ", faceVerts = "
-                        << faceVerts << endl;
+                        Pout<< nl << "Info from part 1. faceI = " << faceI
+                            << ", faceVerts = " << faceVerts << endl;
                         Pout<< "Point locations are: ";
                         for (int a=0; a<faceVerts.size(); a++)
                         {
@@ -5198,20 +5300,25 @@ Foam::labelListList Foam::hexRef4::setRefinement
 
                     if (cellLevel_[own] > 0)
                     {
-                        vector newCentreFromOldCentre(newFaceCentre - mesh_.faceCentres()[faceI]);
-                        if (newCentreFromOldCentre[0] < 0 && newCentreFromOldCentre[1] < 0)
+                        vector newCentreFromOldCentre(
+                                    newFaceCentre - mesh_.faceCentres()[faceI]);
+                        if (newCentreFromOldCentre[0] < 0
+                                && newCentreFromOldCentre[1] < 0)
                         {
                             own = cellAddedCells[history_.myParentCell(own)][0];
                         }
-                        else if (newCentreFromOldCentre[0] < 0 && newCentreFromOldCentre[1] > 0)
+                        else if (newCentreFromOldCentre[0] < 0
+                                 && newCentreFromOldCentre[1] > 0)
                         {
                             own = cellAddedCells[history_.myParentCell(own)][2];
                         }
-                        else if (newCentreFromOldCentre[0] > 0 && newCentreFromOldCentre[1] < 0)
+                        else if (newCentreFromOldCentre[0] > 0
+                                 && newCentreFromOldCentre[1] < 0)
                         {
                             own = cellAddedCells[history_.myParentCell(own)][1];
                         }
-                        else if (newCentreFromOldCentre[0] > 0 && newCentreFromOldCentre[1] > 0)
+                        else if (newCentreFromOldCentre[0] > 0
+                                 && newCentreFromOldCentre[1] > 0)
                         {
                             own = cellAddedCells[history_.myParentCell(own)][3];
                         }
@@ -5219,7 +5326,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                         {
                             // How would you possibly get here?
                             FatalErrorIn("hexRef4::setRefinement(..)")
-                                << "vector newCentreFromOldCentre had components that were in some way magical "
+                                << "vector newCentreFromOldCentre had "
+                                << "components that were in some way magical "
                                 << "(probably equal to zero):"
                                 << newCentreFromOldCentre
                                 << abort(FatalError);
@@ -5242,7 +5350,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                                 mesh_.cellCentres()[oldNei],
                                 newFace
                             );
-                            if (DIAG_GenericDebug) Pout<< "Checked internal orientation" << endl;
+                            if (DIAG_GenericDebug)
+                                Pout<< "Checked internal orientation" << endl;
                         }
                         else
                         {
@@ -5257,7 +5366,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                                 mesh_.faceCentres()[faceI],
                                 newFace
                             );
-                            if (DIAG_GenericDebug) Pout<< "Checked boundary orientation" << endl;
+                            if (DIAG_GenericDebug)
+                                Pout<< "Checked boundary orientation" << endl;
                         }
                     }
 
@@ -5266,7 +5376,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                         modifiedFace = true;
                         if (DIAG_SetRefinement)
                         {
-                            Pout<< "1. Modding face with own, nei : " << own << nei << nl << nl<< endl;
+                            Pout<< "1. Modding face with own, nei : "
+                                << own << nei << nl << nl<< endl;
                         }
                         modFace(meshMod, faceI, newFace, own, nei);
                     }
@@ -5274,7 +5385,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                     {
                         if (DIAG_SetRefinement)
                         {
-                            Pout<< "2. Adding face with own, nei : " << own << nei << nl << nl<< endl;
+                            Pout<< "2. Adding face with own, nei : "
+                                << own << nei << nl << nl<< endl;
                         }
                         addFace(meshMod, faceI, newFace, own, nei);
                     }
@@ -5299,11 +5411,13 @@ Foam::labelListList Foam::hexRef4::setRefinement
     if (DIAG_SetRefinementTitles)
     {
         Pout<< nl << nl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
         Pout<< "hexRef4::setRefinement :"
             << " Adding edge splits to unsplit faces"
             << endl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
     }
     
 
@@ -5322,20 +5436,24 @@ Foam::labelListList Foam::hexRef4::setRefinement
             {
                 label faceI = eFaces[i];
 
-                if (frontAndBackFaces.get(faceI) && affectedFace.get(faceI)) // Add points to unrefined bordering refined (front and back faces)
+                if (frontAndBackFaces.get(faceI) && affectedFace.get(faceI))
+                // Add points to unrefined faces
+                // bordering refined faces (front and back faces)
                 {
                     if (faceMidPoint[faceI] >= 0) // Fatal error
                     {
                         FatalErrorIn("hexRef4::setRefinement(..)")
-                            << "The section of code designed to handle unrefined front "
-                            << "and back faces which border refined areas was triggered "
-                            << "for a face marked for refinement. "
+                            << "The section of code designed to handle "
+                            << "unrefined front and back faces which border "
+                            << "refined areas was triggered for a face marked "
+                            << "for refinement. "
                             << "faceI : " << faceI
                             << abort(FatalError);
                     }
                     if (DIAG_SetRefinement)
                     {
-                        Pout<< "faceI = " << faceI << " is a front or back face." << endl;
+                        Pout<< "faceI = " << faceI
+                            << " is a front or back face." << endl;
                     }
                     // need to modFace with new (5th) point.
                     const face& f = mesh_.faces()[faceI];
@@ -5369,7 +5487,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                     }
                     
                     face newFace;
-                    if (DIAG_SetRefinement) Pout<< "newFaceVerts = " << newFaceVerts << endl;
+                    if (DIAG_SetRefinement)
+                        Pout<< "newFaceVerts = " << newFaceVerts << endl;
                     newFace.transfer(newFaceVerts);
 
                     // The point with the lowest level should be an anchor
@@ -5403,7 +5522,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                                 mesh_.cellCentres()[oldNei],
                                 newFace
                             );
-                            if (DIAG_GenericDebug) Pout<< "Checked internal orientation" << endl;
+                            if (DIAG_GenericDebug)
+                                Pout<< "Checked internal orientation" << endl;
                         }
                         else
                         {
@@ -5416,7 +5536,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
                                 mesh_.faceCentres()[faceI],
                                 newFace
                             );
-                            if (DIAG_GenericDebug) Pout<< "Checked boundary orientation" << endl;
+                            if (DIAG_GenericDebug)
+                                Pout<< "Checked boundary orientation" << endl;
                         }
                     }
 
@@ -5429,23 +5550,27 @@ Foam::labelListList Foam::hexRef4::setRefinement
                             own,                // owner
                             nei,                // neighbour
                             false,              // face flip
-                            mesh_.boundaryMesh().whichPatch(faceI),            // patch for face
+                            mesh_.boundaryMesh().whichPatch(faceI),
+                                    // patch for face
                             false,              // remove from zone
                             -1,                 // zone for face
                             false               // face flip in zone
                         )
                     );
                     affectedFace.unset(faceI);
-                } // End of handling for unrefined front/back faces bordering refined faces.
+                } // End of handling for unrefined front/back
+                  // faces bordering refined faces.
                 
-                if (faceMidPoint[faceI] < 0 && affectedFace.get(faceI)) // Split side faces
+                if (faceMidPoint[faceI] < 0 && affectedFace.get(faceI))
+                    // Split side faces
                 {
                     // Unsplit face. Add edge splits to face.
                     // Side faces fulfill this criteria.
                     if (frontAndBackFaces.get(faceI))
                     {
                         FatalErrorIn("hexRef4::setRefinement(..)")
-                            << "The section of code designed to split side faces was triggered for a front or back face"
+                            << "The section of code designed to split side "
+                            << "faces was triggered for a front or back face"
                             << nl
                             << "faceI : " << faceI
                             << abort(FatalError);
@@ -5464,7 +5589,15 @@ Foam::labelListList Foam::hexRef4::setRefinement
                         oldNei
                     );
 
-                    mySplitSideFaces(cellAddedCells, faceMidPoint, edgeMidPoint, faceI, oldOwn, oldNei, meshMod);
+                    mySplitSideFaces(
+                                cellAddedCells,
+                                faceMidPoint,
+                                edgeMidPoint,
+                                faceI,
+                                oldOwn,
+                                oldNei,
+                                meshMod
+                                );
 
                     affectedFace.unset(faceI);
                 }
@@ -5481,11 +5614,13 @@ Foam::labelListList Foam::hexRef4::setRefinement
     if (DIAG_SetRefinementTitles)
     {
         Pout<< nl << nl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
         Pout<< "hexRef4::setRefinement :"
             << " Changing owner/neighbour for otherwise unaffected faces"
             << endl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
     }
     
     labelList remainingFaces;
@@ -5502,7 +5637,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
     {
         label& pf1 = pairedFaces[i].first();
         label& pf2 = pairedFaces[i].second();
-        if (pf1 >= mesh_.faceCentres().size() || pf2 >= mesh_.faceCentres().size())
+        if (pf1 >= mesh_.faceCentres().size()
+                || pf2 >= mesh_.faceCentres().size())
         {
             FatalErrorIn("setRefinement(..)")
                 << "In part 3 of the face splitting section, "
@@ -5559,8 +5695,8 @@ Foam::labelListList Foam::hexRef4::setRefinement
             {
                 FatalErrorIn("setRefinement(..)")
                     << "Section 3 of the face splitting gave an owner AND "
-                    << "neighbour cell which were not refined in this timestep. "
-                    << "This is (I think) an error."
+                    << "neighbour cell which were not refined in this timestep."
+                    << " This is (I think) an error."
                     << abort(FatalError);
             }
             
@@ -5593,7 +5729,11 @@ Foam::labelListList Foam::hexRef4::setRefinement
                 own = nei;
                 nei = temp;
                 faceRef = faceRef.reverseFace();
-                if (DIAG_Switch || DIAG_SetRefinement_Part3) Pout<< "Flipping own/nei and the face, since own > nei" << endl;
+                if (DIAG_Switch || DIAG_SetRefinement_Part3)
+                {
+                    Pout<< "Flipping own/nei and the face, since own > nei"
+                        << endl;
+                }
             }
             
             if (DIAG_SetRefinement_Part3)
@@ -5616,15 +5756,23 @@ Foam::labelListList Foam::hexRef4::setRefinement
             }
             modFace(meshMod, faceI, faceRef, own, nei);
             
-            point ownPt = own < cellAddedCells.size() ? mesh_.cellCentres()[own] : mesh_.cellCentres()[history_.myParentCell(own)];
-            point neiPt = nei < cellAddedCells.size() ? mesh_.cellCentres()[nei] : mesh_.cellCentres()[history_.myParentCell(nei)];
-            checkInternalOrientation(meshMod, own, faceI, ownPt, neiPt, faceRef);
-            if (DIAG_SetRefinement_Part3 || DIAG_GenericDebug) Pout<< "Checked internal orientation" << endl;
+            point ownPt = own < cellAddedCells.size() ?
+                        mesh_.cellCentres()[own] :
+                        mesh_.cellCentres()[history_.myParentCell(own)];
+            point neiPt = nei < cellAddedCells.size() ?
+                        mesh_.cellCentres()[nei] :
+                        mesh_.cellCentres()[history_.myParentCell(nei)];
+            checkInternalOrientation(
+                        meshMod, own, faceI, ownPt, neiPt, faceRef);
+            if (DIAG_SetRefinement_Part3 || DIAG_GenericDebug)
+                Pout<< "Checked internal orientation" << endl;
 
             // Mark face as having been handled
             if (DIAG_SetRefinement_Part3)
             {
-                Pout<< "faceI = " << faceI << " was handled by part 3 of the face splitting section" << endl;
+                Pout<< "faceI = " << faceI
+                    << " was handled by part 3 of the face splitting section"
+                    << endl;
             }
 
             affectedFace.unset(faceI);
@@ -5636,11 +5784,13 @@ Foam::labelListList Foam::hexRef4::setRefinement
     if (DIAG_SetRefinementTitles)
     {
         Pout<< nl << nl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
         Pout<< "hexRef4::setRefinement :"
             << " Create new internal faces for split cells"
             << endl;
-        Pout<< "------------------------------------------------------------" << endl;
+        Pout<< "------------------------------------------------------------"
+            << endl;
     }
 
     forAll(cellMidPoint, cellI)
@@ -5733,7 +5883,12 @@ Foam::labelListList Foam::hexRef4::setRefinement
         refinedCells[i].transfer(cellAddedCells[cellI]);
     }
     
-    if (DIAG_SetRefinement) Pout<< "Final size of meshMod.points(): " << meshMod.points().size() << endl;
+    if (DIAG_SetRefinement)
+    {
+        Pout<< "Final size of meshMod.points(): "
+            << meshMod.points().size()
+            << endl;
+    }
 
     return refinedCells;
 }
@@ -7129,7 +7284,8 @@ void Foam::hexRef4::setUnrefinement
     labelList facesToRemove;
 
     {
-        // There are 12 faces per split point in 3D for internal cells (fewer if on a border)
+        // There are 12 faces per split point in 3D for internal cells
+        // (fewer if on a border)
         // For 2D, there are 8 per splitPoint (always on a border)
         //~ labelHashSet splitFaces(12*splitPointLabels.size());
         labelHashSet splitFaces(8*splitPointLabels.size());
@@ -7178,8 +7334,10 @@ void Foam::hexRef4::setUnrefinement
         const labelList& pCells = mesh_.pointCells(pointI);
 
         // Check
-        // It seems like cells on the unrefined side of a refinement line would fail this?
-        // However, the same would presumably be true in 3D, so I assume there is a reason
+        // It seems like cells on the unrefined side of a refinement line
+        // would fail this?
+        // However, the same would presumably be true in 3D,
+        // so I assume there is a reason
         // that they don't (they're not listed?)
         if (pCells.size() != 4)
         {

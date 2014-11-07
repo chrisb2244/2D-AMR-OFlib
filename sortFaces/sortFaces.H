@@ -55,7 +55,7 @@ public:
 	
 	void printInfo();
 
-	sortFaces(DynamicList<Pair<label> >& sourceList); // Arguments to constructor?
+    sortFaces(DynamicList<Pair<label> >& sourceList);
 	virtual ~sortFaces();
 	void sort();
 	DynamicList<Pair<label> > condense();
@@ -72,7 +72,12 @@ private:
 	bool bCondense();
 
 	
-	label partition(const label& left, const label& right, const label& pivotIndex);
+    label partition(
+            const label& left,
+            const label& right,
+            const label& pivotIndex
+            );
+
 	void quicksort(const label& left, const label& right);
 	
 	void swap(Pair<label> &a, Pair<label> &b);

@@ -48,7 +48,8 @@ void Foam::sortFaces::printInfo()
 	Pout<< values_;
 }
 
-label Foam::sortFaces::partition(const label& left, const label& right, const label& pivotIndex)
+label Foam::sortFaces::partition(
+        const label& left, const label& right, const label& pivotIndex)
 {
 	label pivotValue = values_[pivotIndex].first();
 	swap(values_[pivotIndex], values_[right]);
@@ -105,7 +106,8 @@ bool Foam::sortFaces::bCondense()
 	{
 		if (originalList[i+1].first() == originalList[i].first())
 		{
-			originalList[i].second() = (originalList[i].second() + originalList[i+1].second());
+            originalList[i].second() =
+                    (originalList[i].second() + originalList[i+1].second());
 			Cvalues_.append(originalList[i]);
 			i++;
 			changed = true;

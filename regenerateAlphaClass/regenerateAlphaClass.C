@@ -27,7 +27,7 @@ License
 #include "regenerateAlphaClass.H"	// Header file for class
 #include <vector>					// Needed for vector of functors
 #include "fvCFD.H"					// Completes types for patchFields
-#include "VersionCompat_RegenAlpha.H"          // Defines macro substitution values for 
+#include "VersionCompat_RegenAlpha.H"  // Defines macro substitution values for
                                     // OF versions < 2.3.0
 
 namespace Foam
@@ -35,7 +35,8 @@ namespace Foam
 	defineTypeNameAndDebug(regenerateAlphaClass, 0);
 }
 
-Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, const double seed, const double yMid) 
+Foam::regenerateAlphaClass::regenerateAlphaClass(
+        const dynamicFvMesh& mesh, const double seed, const double yMid)
 :
 	mesh_(mesh),
 	randomSeed_(seed),
@@ -63,9 +64,12 @@ Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, cons
 {
 	if (debug)
 	{
-		Pout<< "The values of kStart, kEnd, yScalingFactor are " << kStart_
-			<< ", " << kEnd_ << ", " << yScaling_ << ".\n"
-			<< numKs_ << " k values will be used to form the perturbation." << endl;
+        Pout<< "The values of kStart, kEnd, yScalingFactor are "
+            << kStart_<< ", "
+            << kEnd_ << ", "
+            << yScaling_ << ".\n"
+            << numKs_ << " k values will be used to form the perturbation."
+            << endl;
 	}
 	
 	{
@@ -90,8 +94,8 @@ Foam::regenerateAlphaClass::regenerateAlphaClass(const dynamicFvMesh& mesh, cons
 						FatalErrorIn("getCellDepth()")
 							<< "The value of z computed between point "
 							<< pointI
-							<< " and point 0 of cell 0 was not the same as for an earlier point "
-							<< "with non-zero difference in z."
+                            << " and point 0 of cell 0 was not the same as for "
+                            << "an earlier point with non-zero difference in z."
 							<< abort(FatalError);
 					}
 				}
@@ -121,9 +125,9 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
 {
 	if (debug) Pout<< "Calling regenerateAlphaClass::regenerateAlpha()" << endl;
 	// Going to set values of the data points in a constructor.
-	// The constructor also sets up a vector of cosineFunctors to get heights for given x.
-	// This needs to work out which cells should be given which values,
-	// and write an alpha1 file.
+    // The constructor also sets up a vector of cosineFunctors to get heights
+    // for given x. This needs to work out which cells should be given which
+    // values, and write an alpha1 file.
 	volScalarField aBound
     (
         IOobject
@@ -168,7 +172,8 @@ Foam::volScalarField Foam::regenerateAlphaClass::regenerateAlpha()
 	);
 	if (debug) Pout<< "Field created " << endl;
 
-	double yHeight = yMid_; // This value is passed in at construction from the calling program
+    double yHeight = yMid_; // This value is passed in at construction
+                            // from the calling program
 	forAll(mesh_.cellCentres(), i)
 	{
 		double cellHeight = sqrt(mesh_.cellVolumes()[i] / cellDepth_);
@@ -202,8 +207,10 @@ void Foam::regenerateAlphaClass::printInfo()
 	Pout<< nl;
 	Pout<< "Lowest perturbed wavenumber (kStart) = " << kStart_ << endl;
 	Pout<< "Highest perturbed wavenumber (kEnd) = " << kEnd_ << endl;
-	Pout<< "The spacing between perturbed wavenumbers (kSpacing) = " << (kEnd_ - kStart_)/numKs_ << " or " << kSpacing_ << endl;
-	Pout<< "The scaling factor applied to the perturbation (yScaling) = " << yScaling_ << endl;
+    Pout<< "The spacing between perturbed wavenumbers (kSpacing) = "
+        << (kEnd_ - kStart_)/numKs_ << " or " << kSpacing_ << endl;
+    Pout<< "The scaling factor applied to the perturbation (yScaling) = "
+        << yScaling_ << endl;
 	Pout<< endl;
 }
 
@@ -216,7 +223,8 @@ class cosineFunctor
 		double PI;
 };
 
-Foam::regenerateAlphaClass::cosineFunctor::cosineFunctor(double kChosen, double randScaling, double phase)
+Foam::regenerateAlphaClass::cosineFunctor::cosineFunctor(
+        double kChosen, double randScaling, double phase)
 :
 	k_(kChosen),
 	scaling_(randScaling),
@@ -241,7 +249,12 @@ void Foam::regenerateAlphaClass::calculateProfileHeight()
 	}
 	forAll (kList_, k)
 	{
-		createCosineFunctors(cosineVector, kList_[k], scalingList_[k], phaseList_[k]);
+        createCosineFunctors(
+                    cosineVector,
+                    kList_[k],
+                    scalingList_[k],
+                    phaseList_[k]
+                    );
 	}
 }
 
