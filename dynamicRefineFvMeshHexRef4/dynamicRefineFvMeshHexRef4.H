@@ -98,8 +98,6 @@ protected:
 
         //- Refine cells. Update mesh and fields.
         autoPtr<mapPolyMesh> refine(const labelList&);
-        autoPtr<mapPolyMesh> refineAtZero(const labelList&);
-
 
         //- Unrefine cells. Gets passed in centre points of cells to combine.
         autoPtr<mapPolyMesh> unrefine(const labelList&);
@@ -159,6 +157,13 @@ protected:
             //- Extend markedCell with cell-face-cell.
             void extendMarkedCells(PackedBoolList& markedCell) const;
 
+            //- Check all cells have 8 anchor points
+            void checkEightAnchorPoints
+            (
+                PackedBoolList& protectedCell,
+                label& nProtected
+            ) const;
+
 
 private:
 
@@ -207,7 +212,6 @@ public:
 
         //- Update the mesh for both mesh motion and topology change
         virtual bool update();
-        virtual bool updateAtZero();
         
         //- Support older OF versions than 2.3.0
         bool topoChanging(const bool);

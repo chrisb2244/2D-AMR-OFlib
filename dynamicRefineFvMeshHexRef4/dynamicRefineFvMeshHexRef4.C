@@ -38,27 +38,16 @@ License
 #include "syncTools.H"
 #include "pointFields.H"
 
-// refineMesh.C includes
-#include "argList.H"
-//#include "polyMesh.H"
-#include "Time.H"
-#include "undoableMeshCutter.H"
-#include "hexCellLooper.H"
+#include "sigFpe.H"
 #include "cellSet.H"
-#include "twoDPointCorrector.H"
-#include "directions.H"
-#include "OFstream.H"
-#include "multiDirRefinement.H"
-#include "labelIOList.H"
+
+// Includes from refineMesh.C
 #include "wedgePolyPatch.H"
 #include "plane.H"
-#include "SubField.H"
 
-
-#include "VersionCompat_DynRef.H"
 // Macro defines for version compatibility with
 // older than 2.3.0 OpenFOAM versions.
-
+#include "VersionCompat_DynRef.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -73,8 +62,11 @@ namespace Foam
 
 // the PackedBoolList::count method would probably be faster
 // since we are only checking for 'true' anyhow
-Foam::label Foam::dynamicRefineFvMeshHexRef4::count(
-        const PackedBoolList& l, const unsigned int val)
+Foam::label Foam::dynamicRefineFvMeshHexRef4::count
+(
+    const PackedBoolList& l,
+    const unsigned int val
+)
 {
     label n = 0;
     forAll(l, i)
@@ -83,7 +75,15 @@ Foam::label Foam::dynamicRefineFvMeshHexRef4::count(
         {
             n++;
         }
+
+        // debug also serves to get-around Clang compiler trying to optimise
+        // out this forAll loop under O3 optimisation
+        if (debug)
+        {
+            Info<< "n=" << n << endl;
+        }
     }
+
     return n;
 }
 
@@ -444,252 +444,6 @@ void Foam::dynamicRefineFvMeshHexRef4::readDict()
     dumpLevel_ = Switch(refineDict.lookup("dumpLevel"));
 }
 
-Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refineAtZero
-(
-    const labelList& cellsToRefine
-)
-{
-	label axisIndex = twoDNess(*this);
-	const vector normalVector = calculateNormalVector(axisIndex);
-	
-    // Mesh changing engine.
-    polyTopoChange meshMod(*this);
-    
-    // This setRefinement function is screwing up correctFluxes_
-    // Play refinement commands into mesh changer.
-    meshCutter_.setRefinement(cellsToRefine, meshMod, normalVector);
-    
-    // Create mesh (with inflation), return map from old to new mesh.
-    //autoPtr<mapPolyMesh> map = meshMod.changeMesh(*this, true);
-    autoPtr<mapPolyMesh> map = meshMod.changeMesh(*this, false);
-    
-    Info<< "Refined from "
-        << returnReduce(map().nOldCells(), sumOp<label>())
-        << " to " << globalData().nTotalCells() << " cells." << endl;
-
-    if (debug)
-    {
-        // Check map.
-        for (label faceI = 0; faceI < nInternalFaces(); faceI++)
-        {
-            label oldFaceI = map().faceMap()[faceI];
-
-            if (oldFaceI >= nInternalFaces())
-            {
-                FatalErrorIn("dynamicRefineFvMeshHexRef4::refine\
-                             (const labelList&)")
-                    << "New internal face:" << faceI
-                    << " fc:" << faceCentres()[faceI]
-                    << " originates from boundary oldFace:" << oldFaceI
-                    << abort(FatalError);
-            }
-        }
-    }
-
-    // Update fields
-    updateMesh(map);
-
-	// Recopied section.
-	
-	{
-        const labelList& faceMap = map().faceMap();
-        const labelList& reverseFaceMap = map().reverseFaceMap();
-        
-        //Pout<< "faceMap = " << faceMap << nl << endl;
-        //Pout<< "reverseFaceMap = " << reverseFaceMap << nl << endl;
-
-        // Storage for any master faces. These will be the original faces
-        // on the coarse cell that get split into four (or rather the
-        // master face gets modified and three faces get added from the master)
-        labelHashSet masterFaces(4*cellsToRefine.size());
-        // For 2D, there won't be 4 faces for every refined face.
-
-        forAll(faceMap, faceI)
-        {
-            label oldFaceI = faceMap[faceI];
-
-            if (oldFaceI >= 0)
-            {
-                label masterFaceI = reverseFaceMap[oldFaceI];
-
-                if (masterFaceI < 0)
-                {
-                    FatalErrorIn
-                    (
-                        "dynamicRefineFvMeshHexRef4::refine(const labelList&)"
-                    )   << "Problem: should not have removed faces"
-                        << " when refining."
-                        << nl << "face:" << faceI << abort(FatalError);
-                }
-                else if (masterFaceI != faceI)
-                {
-                    masterFaces.insert(masterFaceI);
-                }
-            }
-        }
-
-        if (debug)
-        {
-            Pout<< "Found " << masterFaces.size() << " split faces " << endl;
-        }
-
-        HashTable<surfaceScalarField*> fluxes
-        (
-            lookupClass<surfaceScalarField>()
-        );
-
-        forAllIter(HashTable<surfaceScalarField*>, fluxes, iter)
-        {
-			if (!correctFluxes_.found(iter.key()))
-            {
-                WarningIn("dynamicRefineFvMeshHexRef4::refine\
-                          (const labelList&)")
-                    << "Cannot find surfaceScalarField " << iter.key()
-                    << " in user-provided flux mapping table "
-                    << correctFluxes_ << endl
-                    << "    The flux mapping table is used to recreate the"
-                    << " flux on newly created faces." << endl
-                    << "    Either add the entry if it is a flux or use ("
-                    << iter.key() << " none) to suppress this warning."
-                    << endl;
-                continue;
-            }
-
-            const word& UName = correctFluxes_[iter.key()];
-
-            if (UName == "none")
-            {
-                continue;
-            }
-
-            if (debug)
-            {
-                Pout<< "Mapping flux " << iter.key()
-                    << " using interpolated flux " << UName
-                    << endl;
-            }
-
-            surfaceScalarField& phi = *iter();
-            const surfaceScalarField phiU
-            (
-                fvc::interpolate
-                (
-                    lookupObject<volVectorField>(UName)
-                )
-              & Sf()
-            );
-            // Recalculate new internal faces.
-            for (label faceI = 0; faceI < nInternalFaces(); faceI++)
-            {
-                label oldFaceI = faceMap[faceI];
-
-                if (oldFaceI == -1)
-                {
-                    // Inflated/appended
-                    phi[faceI] = phiU[faceI];
-                }
-                else if (reverseFaceMap[oldFaceI] != faceI)
-                {
-                    // face-from-masterface
-                    phi[faceI] = phiU[faceI];
-                }
-            }
-            // Recalculate new boundary faces.
-            surfaceScalarField::GeometricBoundaryField& bphi =
-                phi.boundaryField();
-            forAll(bphi, patchI)
-            {
-                fvsPatchScalarField& patchPhi = bphi[patchI];
-                const fvsPatchScalarField& patchPhiU =
-                    phiU.boundaryField()[patchI];
-
-                label faceI = patchPhi.patch().start();
-
-                forAll(patchPhi, i)
-                {
-                    label oldFaceI = faceMap[faceI];
-
-                    if (oldFaceI == -1)
-                    {
-                        // Inflated/appended
-                        patchPhi[i] = patchPhiU[i];
-                    }
-                    else if (reverseFaceMap[oldFaceI] != faceI)
-                    {
-                        // face-from-masterface
-                        patchPhi[i] = patchPhiU[i];
-                    }
-
-                    faceI++;
-                }
-            }
-
-            // Update master faces
-            forAllConstIter(labelHashSet, masterFaces, iter)
-            {
-                label faceI = iter.key();
-                //Pout<< "faceI = " << faceI;
-
-                if (isInternalFace(faceI))
-                {
-					//Pout<< " isInternalFace" << endl;
-                    phi[faceI] = phiU[faceI];
-                }
-                else
-                {
-					//Pout<< " is not an internal face.";
-                    label patchI = boundaryMesh().whichPatch(faceI);
-                    //Pout<< " patchI = " << patchI;
-                    if (patchI == 4)
-                    {
-                        // frontAndBack patch - nonuniform empty 0();
-                        // can't look up the values
-                        // Need some solution, pref involving a test for empty
-                        // condition, and then setting patchPhi[i] = 0, perhaps?
-						
-						//Pout<< endl;
-						continue;
-					}
-                    label i = faceI - boundaryMesh()[patchI].start();
-                    //Pout<< ", i = " << i;
-
-                    const fvsPatchScalarField& patchPhiU =
-                        phiU.boundaryField()[patchI];
-                    //Pout<< ". patchPhiU = " << patchPhiU << endl;
-
-                    fvsPatchScalarField& patchPhi = bphi[patchI];
-
-                    patchPhi[i] = patchPhiU[i];
-                }
-            }
-        }
-    }
-
-	// End of recopied section.
-   
-    // Update numbering of cells/vertices.
-    meshCutter_.updateMesh(map);
-
-    // Update numbering of protectedCell_
-    if (protectedCell_.size())
-    {
-        PackedBoolList newProtectedCell(nCells());
-
-        forAll(newProtectedCell, cellI)
-        {
-            label oldCellI = map().cellMap()[cellI];
-            newProtectedCell.set(cellI, protectedCell_.get(oldCellI));
-        }
-        protectedCell_.transfer(newProtectedCell);
-    }
-
-    // Debug: Check refinement levels (across faces only)
-    meshCutter_.checkRefinementLevels(-1, labelList(0));
-
-    return map;
-}
-
-
 // Refines cells, maps fields and recalculates (an approximate) flux
 Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
 (
@@ -809,6 +563,18 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
                 continue;
             }
 
+            if (UName == "NaN")
+            {
+                Pout<< "Setting surfaceScalarField " << iter.key()
+                    << " to NaN" << endl;
+
+                surfaceScalarField& phi = *iter();
+
+                sigFpe::fillSignallingNan(phi.internalField());
+
+                continue;
+            }
+
             if (debug)
             {
                 Pout<< "Mapping flux " << iter.key()
@@ -875,34 +641,28 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::dynamicRefineFvMeshHexRef4::refine
             forAllConstIter(labelHashSet, masterFaces, iter)
             {
                 label faceI = iter.key();
-                //Pout<< "faceI = " << faceI;
 
                 if (isInternalFace(faceI))
                 {
-					//Pout<< " isInternalFace" << endl;
                     phi[faceI] = phiU[faceI];
                 }
                 else
                 {
-					//Pout<< " is not an internal face.";
                     label patchI = boundaryMesh().whichPatch(faceI);
-                    //Pout<< " patchI = " << patchI;
-                    if (patchI == 4)
-                    {
+//                    if (patchI == 4)
+//                    {
                         // frontAndBack patch - nonuniform empty 0();
                         // can't look up the values
                         // Need some solution, pref involving a test for empty
                         // condition, and then setting patchPhi[i] = 0, perhaps?
 						
 						//Pout<< endl;
-						continue;
-					}
+//						continue;
+//					}
                     label i = faceI - boundaryMesh()[patchI].start();
-                    //Pout<< ", i = " << i;
 
                     const fvsPatchScalarField& patchPhiU =
                         phiU.boundaryField()[patchI];
-                    //Pout<< ". patchPhiU = " << patchPhiU << endl;
 
                     fvsPatchScalarField& patchPhi = bphi[patchI];
 
@@ -1175,8 +935,6 @@ Foam::dynamicRefineFvMeshHexRef4::cellToPoint(const scalarField& vFld) const
         }
         pFld[pointI] = sum/pCells.size();
     }
-    //~ Info << "pFld = " ;
-    //~ Info << pFld << endl;
     return pFld;
 }
 
@@ -1256,10 +1014,11 @@ Foam::labelList Foam::dynamicRefineFvMeshHexRef4::selectRefineCells
     calculateProtectedCells(unrefineableCell);
 
     // Count current selection
-    label nCandidates = returnReduce(count(candidateCell, 1), sumOp<label>());
+    label nLocalCandidates = count(candidateCell, 1);
+    label nCandidates = returnReduce(nLocalCandidates, sumOp<label>());
 
     // Collect all cells
-    DynamicList<label> candidates(nCells());
+    DynamicList<label> candidates(nLocalCandidates);
 
     if (nCandidates < nTotToRefine)
     {
@@ -1426,6 +1185,55 @@ void Foam::dynamicRefineFvMeshHexRef4::extendMarkedCells
     }
 }
 
+void Foam::dynamicRefineFvMeshHexRef4::checkEightAnchorPoints
+(
+    PackedBoolList& protectedCell,
+    label& nProtected
+) const
+{
+    const labelList& cellLevel = meshCutter_.cellLevel();
+    const labelList& pointLevel = meshCutter_.pointLevel();
+
+    labelList nAnchorPoints(nCells(), 0);
+
+    forAll(pointLevel, pointI)
+    {
+        const labelList& pCells = pointCells(pointI);
+
+        forAll(pCells, pCellI)
+        {
+            label cellI = pCells[pCellI];
+
+            if (pointLevel[pointI] <= cellLevel[cellI])
+            {
+                // Check if cell has already 8 anchor points -> protect cell
+                if (nAnchorPoints[cellI] == 8)
+                {
+                    if (protectedCell.set(cellI, true))
+                    {
+                        nProtected++;
+                    }
+                }
+
+                if (!protectedCell[cellI])
+                {
+                    nAnchorPoints[cellI]++;
+                }
+            }
+        }
+    }
+
+
+    forAll(protectedCell, cellI)
+    {
+        if (!protectedCell[cellI] && nAnchorPoints[cellI] != 8)
+        {
+            protectedCell.set(cellI, true);
+            nProtected++;
+        }
+    }
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -1549,11 +1357,61 @@ Foam::dynamicRefineFvMeshHexRef4::dynamicRefineFvMeshHexRef4(const IOobject& io)
                 nProtected++;
             }
         }
+
+        // Also protect any cells that are less than hex
+        forAll(cells(), cellI)
+        {
+            const cell& cFaces = cells()[cellI];
+
+            if (cFaces.size() < 6)
+            {
+                if (protectedCell_.set(cellI, 1))
+                {
+                   nProtected++;
+                }
+            }
+            else
+            {
+                forAll(cFaces, cFaceI)
+                {
+                    if (faces()[cFaces[cFaceI]].size() < 4)
+                    {
+                        if (protectedCell_.set(cellI, 1))
+                        {
+                           nProtected++;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Check cells for 8 corner points
+        checkEightAnchorPoints(protectedCell_, nProtected);
     }
 
     if (returnReduce(nProtected, sumOp<label>()) == 0)
     {
         protectedCell_.clear();
+    }
+    else
+    {
+        cellSet protectedCells(*this, "protectedCells", nProtected);
+        forAll(protectedCell_, cellI)
+        {
+            if (protectedCell_[cellI])
+            {
+                protectedCells.insert(cellI);
+            }
+        }
+
+        Info<< "Detected " << returnReduce(nProtected, sumOp<label>())
+            << " cells that are protected from refinement."
+            << " Writing these to cellSet "
+            << protectedCells.name()
+            << "." << endl;
+
+        protectedCells.write();
     }
 }
 
@@ -1565,218 +1423,6 @@ Foam::dynamicRefineFvMeshHexRef4::~dynamicRefineFvMeshHexRef4()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-bool Foam::dynamicRefineFvMeshHexRef4::updateAtZero()
-{
-    // Re-read dictionary. Choosen since usually -small so trivial amount
-    // of time compared to actual refinement. Also very useful to be able
-    // to modify on-the-fly.
-    Info<< "Info - starting updateAtZero()" << endl;
-    Pout<< "Pout - starting updateAtZero()" << endl;
-    dictionary refineDict
-    (
-        IOdictionary
-        (
-            IOobject
-            (
-                "dynamicMeshDict",
-                time().constant(),
-                *this,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
-            )
-        ).subDict(typeName + "Coeffs")
-    );
-    Info<< refineDict << endl;
-
-    label refineInterval = readLabel(refineDict.lookup("refineInterval"));
-
-    bool hasChanged = false;
-
-    if (refineInterval == 0)
-    {
-		//~ MACRO_CHANGING(hasChanged);
-        topoChanging(hasChanged); // was changing(hasChanged);
-
-        return false;
-    }
-    else if (refineInterval < 0)
-    {
-        FatalErrorIn("dynamicRefineFvMeshHexRef4::update()")
-            << "Illegal refineInterval " << refineInterval << nl
-            << "The refineInterval setting in the dynamicMeshDict should"
-            << " be >= 1." << nl
-            << exit(FatalError);
-    }
-
-    // Note: cannot refine at time 0 since no V0 present since mesh not
-    //       moved yet.
-
-    //~ if (time().timeIndex() == 0 && time().timeIndex() % refineInterval == 0)
-    if (1)
-    {
-        label maxCells = readLabel(refineDict.lookup("maxCells"));
-
-        if (maxCells <= 0)
-        {
-            FatalErrorIn("dynamicRefineFvMeshHexRef4::update()")
-                << "Illegal maximum number of cells " << maxCells << nl
-                << "The maxCells setting in the dynamicMeshDict should"
-                << " be > 0." << nl
-                << exit(FatalError);
-        }
-
-        label maxRefinement = readLabel(refineDict.lookup("maxRefinement"));
-
-        if (maxRefinement <= 0)
-        {
-            FatalErrorIn("dynamicRefineFvMeshHexRef4::update()")
-                << "Illegal maximum refinement level " << maxRefinement << nl
-                << "The maxCells setting in the dynamicMeshDict should"
-                << " be > 0." << nl
-                << exit(FatalError);
-        }
-
-        const word fieldName(refineDict.lookup("field"));
-        Info<< "fieldName = " << fieldName << endl;
-
-        const volScalarField& vFld = lookupObject<volScalarField>(fieldName);
-        //~ Info<< "vFld = " << vFld << endl;
-
-        const scalar lowerRefineLevel =
-            readScalar(refineDict.lookup("lowerRefineLevel"));
-        const scalar upperRefineLevel =
-            readScalar(refineDict.lookup("upperRefineLevel"));
-        const scalar unrefineLevel =
-            readScalar(refineDict.lookup("unrefineLevel"));
-        const label nBufferLayers =
-            readLabel(refineDict.lookup("nBufferLayers"));
-
-        // Cells marked for refinement or otherwise protected from unrefinement.
-        PackedBoolList refineCell(nCells());
-
-        if (globalData().nTotalCells() < maxCells)
-        {
-            // Determine candidates for refinement (looking at field only)
-            selectRefineCandidates
-            (
-                lowerRefineLevel,
-                upperRefineLevel,
-                vFld,
-                refineCell
-            );
-
-            // Select subset of candidates. Take into account max allowable
-            // cells, refinement level, protected cells.
-            labelList cellsToRefine
-            (
-                selectRefineCells
-                (
-                    maxCells,
-                    maxRefinement,
-                    refineCell
-                )
-            );
-
-            label nCellsToRefine = returnReduce
-            (
-                cellsToRefine.size(), sumOp<label>()
-            );
-
-            if (nCellsToRefine > 0)
-            {
-                // Refine/update mesh and map fields
-                autoPtr<mapPolyMesh> map = refineAtZero(cellsToRefine);
-
-                // Update refineCell. Note that some of the marked ones have
-                // not been refined due to constraints.
-                {
-                    const labelList& cellMap = map().cellMap();
-                    const labelList& reverseCellMap = map().reverseCellMap();
-
-                    PackedBoolList newRefineCell(cellMap.size());
-
-                    forAll(cellMap, cellI)
-                    {
-                        label oldCellI = cellMap[cellI];
-
-                        if (oldCellI < 0)
-                        {
-                            newRefineCell.set(cellI, 1);
-                        }
-                        else if (reverseCellMap[oldCellI] != cellI)
-                        {
-                            newRefineCell.set(cellI, 1);
-                        }
-                        else
-                        {
-                            newRefineCell.set(cellI, refineCell.get(oldCellI));
-                        }
-                    }
-                    refineCell.transfer(newRefineCell);
-                }
-
-                // Extend with a buffer layer to prevent neighbouring points
-                // being unrefined.
-                for (label i = 0; i < nBufferLayers; i++)
-                {
-                    extendMarkedCells(refineCell);
-                }
-
-                hasChanged = true;
-            }
-        }
-
-
-        //~ {
-            //~ // Select unrefineable points that are not marked in refineCell
-            //~ labelList pointsToUnrefine
-            //~ (
-                //~ selectUnrefinePoints
-                //~ (
-                    //~ unrefineLevel,
-                    //~ refineCell,
-                    //~ minCellField(vFld)
-                //~ )
-            //~ );
-//~ 
-            //~ label nSplitPoints = returnReduce
-            //~ (
-                //~ pointsToUnrefine.size(),
-                //~ sumOp<label>()
-            //~ );
-//~ 
-            //~ if (nSplitPoints > 0)
-            //~ {
-                //~ // Refine/update mesh
-                //~ //Pout<< "Points were chosen to unrefine" << endl;
-                //~ unrefine(pointsToUnrefine);
-//~ 
-                //~ hasChanged = true;
-            //~ }
-        //~ }
-
-
-        if ((nRefinementIterations_ % 10) == 0)
-        {
-            if (debug) {
-                Pout<< "Call in dynamicRefineFvMeshHexRef4.C to compact()."
-                    << endl;
-            }
-            // Compact refinement history occassionally (how often?).
-            // Unrefinement causes holes in the refinementHistory.
-            const_cast<refinementTree&>(meshCutter().history()).compact();
-        }
-        nRefinementIterations_++;
-    }
-
-	//~ MACRO_CHANGING(hasChanged);
-    topoChanging(hasChanged); // was changing(hasChanged);
-
-    return hasChanged;
-}
-
-
 bool Foam::dynamicRefineFvMeshHexRef4::update()
 {
     // Re-read dictionary. Choosen since usually -small so trivial amount
@@ -1804,8 +1450,7 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
 
     if (refineInterval == 0)
     {
-		//~ MACRO_CHANGING(hasChanged);
-        topoChanging(hasChanged); // was changing(hasChanged);
+        topoChanging(hasChanged); // uses VersionCompat to run on OF<2.3.0
 
         return false;
     }
@@ -1853,25 +1498,25 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
             readScalar(refineDict.lookup("lowerRefineLevel"));
         const scalar upperRefineLevel =
             readScalar(refineDict.lookup("upperRefineLevel"));
-        const scalar unrefineLevel =
-            readScalar(refineDict.lookup("unrefineLevel"));
+        const scalar unrefineLevel = refineDict.lookupOrDefault<scalar>
+            ("unrefineLevel", GREAT);
         const label nBufferLayers =
             readLabel(refineDict.lookup("nBufferLayers"));
 
         // Cells marked for refinement or otherwise protected from unrefinement.
         PackedBoolList refineCell(nCells());
 
+        // Determine candidates for refinement (looking at field only)
+        selectRefineCandidates
+        (
+            lowerRefineLevel,
+            upperRefineLevel,
+            vFld,
+            refineCell
+        );
+
         if (globalData().nTotalCells() < maxCells)
         {
-            // Determine candidates for refinement (looking at field only)
-            selectRefineCandidates
-            (
-                lowerRefineLevel,
-                upperRefineLevel,
-                vFld,
-                refineCell
-            );
-
             // Select subset of candidates. Take into account max allowable
             // cells, refinement level, protected cells.
             labelList cellsToRefine
@@ -1975,10 +1620,8 @@ bool Foam::dynamicRefineFvMeshHexRef4::update()
         }
         nRefinementIterations_++;
     }
-    
-    //~ MACRO_CHANGING(hasChanged);
 
-    topoChanging(hasChanged); // was changing(hasChanged);
+    topoChanging(hasChanged); // was changing(hasChanged); see VersionCompat
 
     return hasChanged;
 }
